@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SVS Consultancy — Operations Console</title>
+<meta name="theme-color" content="#16264d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SVS Console">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
   :root{
     --navy:#16264d; --navy2:#1f3566; --orange:#f47b20; --orange2:#ff9544;
@@ -112,6 +118,7 @@
 <nav>
   <button class="active" data-v="home">Dashboard</button>
   <button data-v="candidates">Candidates</button>
+  <button data-v="scorecard">Interview Score</button>
   <button data-v="clients">Clients &amp; Outreach</button>
   <button data-v="submissions">Submission Log</button>
   <button data-v="templates">Messages</button>
@@ -119,6 +126,7 @@
   <button data-v="fees">Fee Calculator</button>
   <button data-v="plan">90-Day Plan</button>
   <button data-v="data">Backup</button>
+  <button data-v="install">Install</button>
 </nav>
 
 <main>
@@ -204,6 +212,40 @@
       <th>Name</th><th>Role</th><th>Type</th><th>Loc</th><th>Comm</th><th>Stage</th><th>Actions</th>
     </tr></thead><tbody></tbody></table>
     <div class="empty" id="candEmpty" style="display:none">No candidates yet. Add your first one above.</div>
+  </div>
+</section>
+
+<!-- SCORECARD -->
+<section class="view" id="scorecard">
+  <h2>Interview Scorecard</h2>
+  <p class="sub">Rate a candidate on a quick call. Slide each bar, get an honest verdict, save it to their record. Takes two minutes and stops you putting a not-ready candidate in front of a client.</p>
+
+  <div class="card">
+    <div class="grid g2">
+      <div><label>Which candidate</label><select id="sc_cand"></select></div>
+      <div><label>Date of call</label><input type="date" id="sc_date"></div>
+    </div>
+    <div id="sc_sliders"></div>
+    <label>Quick notes (what stood out, good or bad)</label>
+    <textarea id="sc_notes" placeholder="e.g. clear on technical answers, but nervous and spoke too fast on the intro"></textarea>
+    <div class="card" style="background:var(--soft);margin-top:14px;text-align:center">
+      <div class="small">Overall readiness</div>
+      <div id="sc_score" style="font-size:40px;font-weight:800;color:var(--navy)">—</div>
+      <div id="sc_verdict" style="font-weight:700;margin-bottom:6px"></div>
+      <div class="barwrap" style="max-width:340px;margin:0 auto"><div class="bar" id="sc_bar" style="width:0%"></div></div>
+      <div class="small" id="sc_advice" style="margin-top:10px"></div>
+    </div>
+    <div class="topbtns" style="margin-top:14px">
+      <button class="btn orange" onclick="saveScore()">Save score to candidate</button>
+      <button class="btn ghost" onclick="resetScore()">Reset</button>
+    </div>
+    <p class="hint">Saving updates that candidate's readiness stage automatically — a strong score moves them toward "Interview ready," a weak one keeps them in training.</p>
+  </div>
+
+  <div class="card">
+    <h3>Past scorecards</h3>
+    <table id="scoreTable"><thead><tr><th>Date</th><th>Candidate</th><th>Score</th><th>Verdict</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="scoreEmpty" style="display:none">No scorecards yet. Run one after your next candidate call.</div>
   </div>
 </section>
 
@@ -448,6 +490,40 @@
   </div>
 </section>
 
+<!-- INSTALL -->
+<section class="view" id="install">
+  <h2>Put it on your phone</h2>
+  <p class="sub">Install SVS Console like a real app. One tap to open, no browser bar, works offline.</p>
+  <div class="card" id="installNow" style="display:none">
+    <h3>One-tap install</h3>
+    <p class="small">Your browser supports direct install. Tap the button.</p>
+    <button class="btn orange" id="installBtn">Install SVS Console</button>
+  </div>
+  <div class="card">
+    <h3>On an iPhone (Safari)</h3>
+    <ol class="lead" style="padding-left:20px">
+      <li>Open this page in <b>Safari</b> (not Chrome).</li>
+      <li>Tap the <b>Share</b> button (the square with an arrow, at the bottom).</li>
+      <li>Scroll down, tap <b>Add to Home Screen</b>.</li>
+      <li>Tap <b>Add</b>. The SVS icon now sits on your home screen like any app.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>On an Android phone (Chrome)</h3>
+    <ol class="lead" style="padding-left:20px">
+      <li>Open this page in <b>Chrome</b>.</li>
+      <li>Tap the <b>⋮</b> menu (top right).</li>
+      <li>Tap <b>Add to Home screen</b> / <b>Install app</b>.</li>
+      <li>Tap <b>Add</b>. Done — it's on your home screen.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>On a laptop (Chrome / Edge)</h3>
+    <p class="lead">Look for the small <b>install icon</b> (a screen with a down-arrow) on the right edge of the address bar, and click it. Or use the one-tap button above if it appears.</p>
+  </div>
+  <div class="ok-box">Reminder: installing it does not back up your data. Your candidates and clients still live in this one browser. Use the <b>Backup</b> tab weekly regardless.</div>
+</section>
+
 </main>
 
 <div class="toast" id="toast"></div>
@@ -459,11 +535,12 @@ const seed={
   candidates:[],
   clients:[],
   submissions:[],
+  scores:[],
   plan:{},
   seq:1
 }
 let db=load();
-function load(){try{const r=localStorage.getItem(KEY);return r?JSON.parse(r):JSON.parse(JSON.stringify(seed));}catch(e){return JSON.parse(JSON.stringify(seed));}}
+function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
 function nid(){return db.seq++;}
 
@@ -489,7 +566,7 @@ function saveCandidate(){
     loc:val('c_loc'),comm:val('c_comm'),stage:val('c_stage'),contact:val('c_contact'),notes:val('c_notes')};
   if(editCand){const i=db.candidates.findIndex(c=>c.id===editCand);db.candidates[i]=obj;}
   else db.candidates.push(obj);
-  save();clearCandForm();renderCandidates();renderSubsOptions();toast('Candidate saved');
+  save();clearCandForm();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();toast('Candidate saved');
 }
 function editCandidate(id){const c=db.candidates.find(x=>x.id===id);editCand=id;
   set('c_name',c.name);set('c_role',c.role);set('c_type',c.type);set('c_exp',c.exp);
@@ -497,7 +574,7 @@ function editCandidate(id){const c=db.candidates.find(x=>x.id===id);editCand=id;
   document.getElementById('c_editing').textContent='Editing: '+c.name;window.scrollTo(0,0);}
 function clearCandForm(){editCand=null;['c_name','c_role','c_exp','c_loc','c_contact','c_notes'].forEach(i=>set(i,''));
   set('c_type','Fresher');set('c_comm','Not yet tested');set('c_stage','New');document.getElementById('c_editing').textContent='';}
-function delCandidate(id){if(!confirm('Delete this candidate?'))return;db.candidates=db.candidates.filter(c=>c.id!==id);save();renderCandidates();renderSubsOptions();}
+function delCandidate(id){if(!confirm('Delete this candidate?'))return;db.candidates=db.candidates.filter(c=>c.id!==id);save();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();}
 const stageColor={'New':'background:#e9edf6;color:#16264d','Assessed':'background:#e7eefc;color:#3358b8','Resume ready':'background:#fff0db;color:#b5740b','Interview ready':'background:#ffe6cc;color:#c2620a','Submitted to client':'background:#dce9ff;color:#1f4fb0','Placed':'background:#d9f3e2;color:#177a42'};
 function renderCandidates(){
   const tb=document.querySelector('#candTable tbody');tb.innerHTML='';
@@ -705,6 +782,83 @@ function renderPlan(){
 }
 function togglePlan(k){db.plan[k]=document.getElementById(k).checked;save();renderPlan();}
 
+/* ---------- scorecard ---------- */
+const scDims=[
+  {k:'comm',label:'Communication',hint:'Clear, easy to understand, right pace'},
+  {k:'tech',label:'Skill / role knowledge',hint:'Knows their actual job'},
+  {k:'conf',label:'Confidence',hint:'Calm, not shaky or over-nervous'},
+  {k:'prof',label:'Professionalism',hint:'On time, polite, took it seriously'},
+  {k:'fit',label:'Job readiness',hint:'Could you put them in front of a client?'}
+];
+function renderScSliders(){
+  const w=document.getElementById('sc_sliders');w.innerHTML='';
+  scDims.forEach(d=>{
+    const row=document.createElement('div');row.style.margin='14px 0';
+    row.innerHTML=`<div style="display:flex;justify-content:space-between"><label style="margin:0">${d.label}</label>
+      <b id="scv_${d.k}" style="color:var(--orange)">3</b></div>
+      <input type="range" min="1" max="5" value="3" id="sc_${d.k}" oninput="calcScore()" style="width:100%;accent-color:#1f3566">
+      <div class="hint">${d.hint}</div>`;
+    w.appendChild(row);
+  });
+}
+function calcScore(){
+  let sum=0;scDims.forEach(d=>{const v=+document.getElementById('sc_'+d.k).value;sum+=v;document.getElementById('scv_'+d.k).textContent=v;});
+  const pct=Math.round(sum/(scDims.length*5)*100);
+  document.getElementById('sc_score').textContent=pct+'%';
+  document.getElementById('sc_bar').style.width=pct+'%';
+  let v,a,col;
+  if(pct>=80){v='Interview ready';col='#177a42';a='Strong. Get their resume polished and start putting them in front of clients.';}
+  else if(pct>=60){v='Nearly there';col='#b5740b';a='Close. One or two areas to tighten — a little coaching and they\'re submittable.';}
+  else if(pct>=40){v='Needs training';col='#c2620a';a='Not client-ready yet. Worth investing in communication/skill training before submitting.';}
+  else{v='Not ready';col='#c33';a='Hold off submitting. Significant gaps — be honest with them about what to work on.';}
+  const vd=document.getElementById('sc_verdict');vd.textContent=v;vd.style.color=col;
+  document.getElementById('sc_advice').textContent=a;
+  return {pct,v};
+}
+function resetScore(){renderScSliders();calcScore();set('sc_notes','');document.getElementById('sc_date').value=today();}
+function saveScore(){
+  const sel=document.getElementById('sc_cand');
+  if(!db.candidates.length){toast('Add a candidate first');return;}
+  const cand=db.candidates.find(c=>c.id==sel.value);if(!cand){toast('Pick a candidate');return;}
+  const r=calcScore();
+  const detail={};scDims.forEach(d=>detail[d.k]=+document.getElementById('sc_'+d.k).value);
+  db.scores.unshift({id:nid(),candId:cand.id,candName:cand.name,date:val('sc_date')||today(),pct:r.pct,verdict:r.v,detail,notes:val('sc_notes')});
+  // auto-advance stage based on score
+  if(r.pct>=80&&['New','Assessed'].includes(cand.stage))cand.stage='Interview ready';
+  else if(r.pct>=60&&cand.stage==='New')cand.stage='Assessed';
+  else if(cand.stage==='New')cand.stage='Assessed';
+  // reflect communication rating
+  const commV=detail.comm;cand.comm=commV>=4?'Strong':commV>=3?'Average':'Needs work';
+  save();renderScores();renderCandidates();renderHome();resetScore();toast('Scored '+r.pct+'% — saved to '+cand.name);
+}
+function renderScCandOptions(){
+  const sel=document.getElementById('sc_cand');
+  sel.innerHTML=db.candidates.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.role)}</option>`).join('')||'<option>Add candidates first</option>';
+}
+function delScore(id){if(!confirm('Delete this scorecard?'))return;db.scores=db.scores.filter(s=>s.id!==id);save();renderScores();}
+function renderScores(){
+  const tb=document.querySelector('#scoreTable tbody');tb.innerHTML='';
+  document.getElementById('scoreEmpty').style.display=db.scores.length?'none':'block';
+  db.scores.forEach(s=>{
+    const col=s.pct>=80?'#177a42':s.pct>=60?'#b5740b':s.pct>=40?'#c2620a':'#c33';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(s.date)}</b></td><td>${esc(s.candName)}</td>
+      <td><b style="color:${col}">${s.pct}%</b></td>
+      <td>${esc(s.verdict)}${s.notes?'<br><span class="small">'+esc(s.notes)+'</span>':''}</td>
+      <td><button class="btn danger sm" onclick="delScore(${s.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- install (PWA) ---------- */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;
+  document.getElementById('installNow').style.display='block';});
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('installBtn');
+  if(b)b.onclick=async()=>{if(!deferredPrompt){toast('Use the manual steps below');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installNow').style.display='none';};
+});
+
 /* ---------- home ---------- */
 function renderHome(){
   const placed=db.candidates.filter(c=>c.stage==='Placed').length+db.submissions.filter(s=>s.status==='Joined').length;
@@ -751,8 +905,10 @@ function set(id,v){document.getElementById(id).value=v;}
 function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
-function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderTemplates();renderPlan();calcFee();}
+function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();}
 document.getElementById('s_date').value=today();
+document.getElementById('sc_date').value=today();
+renderScSliders();calcScore();
 renderAll();
 </script>
 </body>
