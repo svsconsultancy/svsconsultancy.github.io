@@ -291,6 +291,7 @@
         <select id="cl_terms"><option>No</option><option>Yes — email confirmed</option></select>
       </div>
       <div><label>Contact (email/phone/LinkedIn)</label><input id="cl_contact" placeholder="optional"></div>
+      <div><label>Follow up on</label><input type="date" id="cl_next"><div class="hint">When to chase them next. Overdue ones show on your dashboard.</div></div>
     </div>
     <label>Notes / last conversation</label><textarea id="cl_notes" placeholder="What was discussed, next step, fee quoted..."></textarea>
     <div style="margin-top:12px" class="topbtns">
@@ -528,6 +529,19 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="welcome" style="display:none;position:fixed;inset:0;background:rgba(16,38,77,.6);z-index:200;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:14px;max-width:440px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <h2 style="margin:0 0 4px">Welcome to SVS Console</h2>
+    <p class="small" style="margin:0 0 14px">Your whole consultancy in one place. Here's the short version:</p>
+    <div class="check"><span style="color:var(--orange)">1</span><label><b>Candidates</b> — add the people looking for jobs.</label></div>
+    <div class="check"><span style="color:var(--orange)">2</span><label><b>Clients</b> — add companies and HR contacts. This side pays.</label></div>
+    <div class="check"><span style="color:var(--orange)">3</span><label><b>Messages</b> — copy ready-made texts to send.</label></div>
+    <div class="check"><span style="color:var(--orange)">4</span><label><b>90-Day Plan</b> — if unsure what to do, start there.</label></div>
+    <p class="small" style="margin:14px 0">Everything saves on this device. Back up weekly from the Backup tab.</p>
+    <button class="btn orange" style="width:100%" onclick="closeWelcome()">Got it, let's go</button>
+  </div>
+</div>
+
 <script>
 /* ---------- storage ---------- */
 const KEY='svs_console_v1';
@@ -586,10 +600,18 @@ function renderCandidates(){
       <td>${esc(c.type)}</td><td>${esc(c.loc)||'<span class="small">—</span>'}</td>
       <td>${esc(c.comm)}</td>
       <td><span class="pill" style="${stageColor[c.stage]||''}">${esc(c.stage)}</span></td>
-      <td class="row-actions"><button class="btn ghost sm" onclick="editCandidate(${c.id})">Edit</button>
+      <td class="row-actions"><button class="btn sm" onclick="pitchCand(${c.id})">Pitch</button>
+      <button class="btn ghost sm" onclick="editCandidate(${c.id})">Edit</button>
       <button class="btn danger sm" onclick="delCandidate(${c.id})">Del</button></td>`;
     tb.appendChild(tr);
   });
+}
+function pitchCand(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  const exp=c.exp?c.exp+' ':'';
+  const loc=c.loc?', open to '+c.loc:'';
+  const msg=`Hi [name], I run a recruitment desk at SVS Consultancy. I have a ${c.role||'candidate'}${exp?' ('+c.exp+')':''}, available now${loc}. If you have a matching opening I can share the profile today. Are you hiring for this right now?`;
+  navigator.clipboard.writeText(msg).then(()=>toast('Pitch copied — paste to an HR contact, fill [name]')).catch(()=>toast('Copy failed'));
 }
 
 /* ---------- clients ---------- */
@@ -597,16 +619,16 @@ let editClient=null;
 function saveClient(){
   const co=val('cl_company');if(!co){toast('Company required');return;}
   const obj={id:editClient||nid(),company:co,person:val('cl_person'),role:val('cl_role'),type:val('cl_type'),
-    source:val('cl_source'),req:val('cl_req'),stage:val('cl_stage'),terms:val('cl_terms'),contact:val('cl_contact'),notes:val('cl_notes')};
+    source:val('cl_source'),req:val('cl_req'),stage:val('cl_stage'),terms:val('cl_terms'),contact:val('cl_contact'),next:val('cl_next'),notes:val('cl_notes')};
   if(editClient){const i=db.clients.findIndex(c=>c.id===editClient);db.clients[i]=obj;}
   else db.clients.push(obj);
   save();clearClientForm();renderClients();renderSubsOptions();renderHome();toast('Client saved');
 }
 function editClientF(id){const c=db.clients.find(x=>x.id===id);editClient=id;
   set('cl_company',c.company);set('cl_person',c.person);set('cl_role',c.role);set('cl_type',c.type);
-  set('cl_source',c.source);set('cl_req',c.req);set('cl_stage',c.stage);set('cl_terms',c.terms);set('cl_contact',c.contact);set('cl_notes',c.notes);
+  set('cl_source',c.source);set('cl_req',c.req);set('cl_stage',c.stage);set('cl_terms',c.terms);set('cl_contact',c.contact);set('cl_next',c.next||'');set('cl_notes',c.notes);
   document.getElementById('cl_editing').textContent='Editing: '+c.company;window.scrollTo(0,0);}
-function clearClientForm(){editClient=null;['cl_company','cl_person','cl_req','cl_contact','cl_notes'].forEach(i=>set(i,''));
+function clearClientForm(){editClient=null;['cl_company','cl_person','cl_req','cl_contact','cl_next','cl_notes'].forEach(i=>set(i,''));
   set('cl_role','Talent Acquisition / Recruiter');set('cl_type','BPO');set('cl_source','Warm intro');set('cl_stage','To contact');set('cl_terms','No');
   document.getElementById('cl_editing').textContent='';}
 function delClient(id){if(!confirm('Delete this client?'))return;db.clients=db.clients.filter(c=>c.id!==id);save();renderClients();renderSubsOptions();renderHome();}
@@ -616,8 +638,13 @@ function renderClients(){
   document.getElementById('clientEmpty').style.display=db.clients.length?'none':'block';
   db.clients.forEach(c=>{
     const termsPill=c.terms.startsWith('Yes')?'<span class="pill" style="background:#d9f3e2;color:#177a42">Yes</span>':'<span class="pill" style="background:#fdeaea;color:#c33">No</span>';
+    let followBadge='';
+    if(c.next&&!['Dead','Placed with them'].includes(c.stage)){
+      const od=c.next<today();
+      followBadge=`<br><span class="pill" style="background:${od?'#fdeaea':'#fff0db'};color:${od?'#c33':'#b5740b'}">${od?'follow up overdue':'follow up'} ${esc(c.next)}</span>`;
+    }
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td><b>${esc(c.company)}</b><br><span class="small">${esc(c.type)} · ${esc(c.source)}</span></td>
+    tr.innerHTML=`<td><b>${esc(c.company)}</b><br><span class="small">${esc(c.type)} · ${esc(c.source)}</span>${followBadge}</td>
       <td>${esc(c.person)||'<span class="small">—</span>'}<br><span class="small">${esc(c.role)}</span>${c.contact?'<br><span class="small">'+esc(c.contact)+'</span>':''}</td>
       <td>${esc(c.type)}</td>
       <td>${esc(c.req)||'<span class="small">—</span>'}${c.notes?'<br><span class="small">'+esc(c.notes)+'</span>':''}</td>
@@ -875,8 +902,10 @@ function renderHome(){
   if(liveReqs){rm.style.display='block';rm.innerHTML=`You have <b>${liveReqs}</b> live requirement${liveReqs>1?'s':''}. Match a ready candidate and submit — log it the moment you do.`;}
   else rm.style.display='none';
 
-  // today list
-  const todo=[];
+  // today list — overdue follow-ups first (most important), then the rest
+  const todo=[],t0=today();
+  db.clients.filter(c=>c.next&&c.next<=t0&&!['Dead','Placed with them'].includes(c.stage))
+    .forEach(c=>todo.push((c.next<t0?'<b style="color:#c33">Overdue:</b> ':'<b style="color:#b5740b">Due today:</b> ')+'follow up with <b>'+esc(c.company)+'</b> ('+esc(c.person||'contact')+').'));
   if(!db.clients.length)todo.push('Add the first person you know who hires — your warmest first client.');
   db.candidates.filter(c=>c.comm==='Not yet tested').forEach(c=>todo.push('Assess <b>'+esc(c.name)+'</b>\'s communication.'));
   db.clients.filter(c=>c.stage==='To contact').forEach(c=>todo.push('Reach out to <b>'+esc(c.company)+'</b> ('+esc(c.person||'contact')+').'));
@@ -905,11 +934,19 @@ function set(id,v){document.getElementById(id).value=v;}
 function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
+/* ---------- welcome (first run) ---------- */
+function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
+function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
+
 function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
 renderScSliders();calcScore();
 renderAll();
+maybeWelcome();
+
+/* ---------- offline (service worker) ---------- */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 </script>
 </body>
 </html>
