@@ -137,6 +137,14 @@
   <h2>Dashboard</h2>
   <p class="sub">Your business at a glance. Everything here is saved on this device automatically.</p>
   <div class="grid g4" id="stats"></div>
+  <div class="grid g2" id="moneyStrip" style="margin-top:6px"></div>
+
+  <div class="card" style="margin-top:6px">
+    <h3>Your funnel</h3>
+    <p class="small" style="margin-top:0">Candidates flow left to right toward a placement. If a stage is empty, that's where to push.</p>
+    <div id="funnel"></div>
+    <p class="hint" id="avgFeeNote"></p>
+  </div>
 
   <div class="grid g2" style="margin-top:6px">
     <div class="card">
@@ -674,7 +682,8 @@ function pitchCand(id){
   const exp=c.exp?c.exp+' ':'';
   const loc=c.loc?', open to '+c.loc:'';
   const msg=`Hi [name], I run a recruitment desk at SVS Consultancy. I have a ${c.role||'candidate'}${exp?' ('+c.exp+')':''}, available now${loc}. If you have a matching opening I can share the profile today. Are you hiring for this right now?`;
-  navigator.clipboard.writeText(msg).then(()=>toast('Pitch copied — paste to an HR contact, fill [name]')).catch(()=>toast('Copy failed'));
+  navigator.clipboard.writeText(msg).catch(()=>{});
+  waSend(msg);
 }
 
 /* ---------- clients ---------- */
@@ -798,13 +807,20 @@ function renderTemplates(){
   const w=document.getElementById('tmplWrap');w.innerHTML='';
   templates.forEach((t,i)=>{
     const d=document.createElement('div');d.style.marginBottom='18px';
-    d.innerHTML=`<div class="copybar"><b>${esc(t.t)}</b><button class="btn sm" onclick="copyT(${i})">Copy</button></div>
+    d.innerHTML=`<div class="copybar"><b>${esc(t.t)}</b><span class="row-actions"><button class="btn sm ghost" onclick="copyT(${i})">Copy</button><button class="btn sm" style="background:#25d366" onclick="waT(${i})">WhatsApp</button></span></div>
       <div class="tmpl" id="tmpl${i}">${esc(t.body)}</div>
       <div class="small" style="margin-bottom:14px">💡 ${esc(t.note)}</div>`;
     w.appendChild(d);
   });
 }
 function copyT(i){navigator.clipboard.writeText(templates[i].body).then(()=>toast('Copied — fill the [brackets] before sending'));}
+function waT(i){waSend(templates[i].body);}
+/* open WhatsApp with text prefilled — works on phone app + web */
+function waSend(text){
+  const u='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(u,'_blank','noopener');
+  toast('Opening WhatsApp — pick the contact');
+}
 
 /* ---------- fees ---------- */
 function calcFee(){
@@ -813,6 +829,7 @@ function calcFee(){
   const flat=+document.getElementById('f_flat').value||0,cnt=+document.getElementById('f_count').value||0;
   document.getElementById('f_flatout').textContent='₹'+(flat*cnt).toLocaleString('en-IN');
   const goal=+document.getElementById('f_goal').value||0,avg=+document.getElementById('f_avg').value||0;
+  if(avg){db.avgFee=avg;save();}
   const tg=document.getElementById('f_target');
   if(goal&&avg){const n=Math.ceil(goal/avg);tg.innerHTML=`To hit <b>₹${goal.toLocaleString('en-IN')}</b>/month at <b>₹${avg.toLocaleString('en-IN')}</b> per placement, you need <b>${n} placement${n>1?'s':''}</b> a month — about <b>${(n/4).toFixed(1)} a week</b>. Work backwards: that's roughly ${n*3}–${n*5} live profiles in play, which means ${Math.max(3,n*2)}+ active client conversations.`;}
   else tg.textContent='Enter a goal and average fee to see how many placements you need.';
@@ -1015,14 +1032,33 @@ function renderJobSources(){
 
 /* ---------- home ---------- */
 function renderHome(){
-  const placed=db.candidates.filter(c=>c.stage==='Placed').length+db.submissions.filter(s=>s.status==='Joined').length;
+  const joined=db.submissions.filter(s=>s.status==='Joined').length;
+  const placed=db.candidates.filter(c=>c.stage==='Placed').length+joined;
   const ready=db.candidates.filter(c=>['Resume ready','Interview ready','Submitted to client'].includes(c.stage)).length;
   const liveReqs=db.clients.filter(c=>c.req&&c.req.trim()&&!['Dead','Placed with them'].includes(c.stage)).length;
+  // money: in-flight submissions x avg fee = pipeline; joined x avg fee = earned
+  const avgFee=db.avgFee||50000;
+  const inFlight=db.submissions.filter(s=>['Submitted','Shortlisted','Interviewing','Offer'].includes(s.status)).length;
+  const pipeline=inFlight*avgFee, earned=joined*avgFee;
+  const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
   document.getElementById('stats').innerHTML=`
     <div class="stat"><div class="n">${db.candidates.length}</div><div class="l">Candidates</div></div>
     <div class="stat"><div class="n">${ready}</div><div class="l">Ready to submit</div></div>
     <div class="stat accent"><div class="n">${db.clients.length}</div><div class="l">Client contacts</div></div>
     <div class="stat accent"><div class="n">${placed}</div><div class="l">Placed</div></div>`;
+  const ms=document.getElementById('moneyStrip');
+  if(ms)ms.innerHTML=`
+    <div class="stat" style="border-color:#ffd9a8;background:#fff9f0"><div class="n" style="color:var(--orange)">${inr(pipeline)}</div><div class="l">In the pipeline${inFlight?' ('+inFlight+' live)':''}</div></div>
+    <div class="stat" style="border-color:#bce6cb;background:#f3fbf6"><div class="n" style="color:var(--green)">${inr(earned)}</div><div class="l">Earned (${joined} joined)</div></div>`;
+  // funnel
+  const fEl=document.getElementById('funnel');
+  if(fEl){
+    const stages=[['Candidates',db.candidates.length,'#3358b8'],['Ready',ready,'#b5740b'],['Submitted',db.submissions.length,'#1f4fb0'],['Placed',placed,'#177a42']];
+    const max=Math.max(1,...stages.map(s=>s[1]));
+    fEl.innerHTML=stages.map(s=>`<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${s[0]}</span><b>${s[1]}</b></div><div class="barwrap" style="height:14px"><div class="bar" style="width:${Math.round(s[1]/max*100)}%;background:${s[2]}"></div></div></div>`).join('');
+  }
+  const afn=document.getElementById('avgFeeNote');
+  if(afn)afn.textContent='Money figures use '+inr(avgFee)+' average fee per placement. Set your real number in the Fee Calculator tab.';
   document.getElementById('openReqs').textContent=liveReqs;
   document.getElementById('reqWarn').style.display=liveReqs?'none':'block';
   const rm=document.getElementById('reqMsg');
@@ -1068,6 +1104,7 @@ function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.ge
 function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();renderJobCandBtns();renderJobSources();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
+if(db.avgFee)document.getElementById('f_avg').value=db.avgFee;
 renderScSliders();calcScore();
 renderAll();
 maybeWelcome();
