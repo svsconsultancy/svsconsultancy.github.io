@@ -252,28 +252,50 @@
 
 <!-- FIND JOBS -->
 <section class="view" id="findjobs">
-  <h2>Find Live Jobs</h2>
-  <p class="sub">Real, current openings from the actual job boards. Nothing here is stored or made up — every button opens a live search, so you always see today's genuine postings straight from the source.</p>
+  <h2>Find HR &amp; Hiring Companies</h2>
+  <p class="sub">This is the half that pays. Find the recruiters and companies hiring right now, reach them, and turn each one into a client. Every button opens a live search — real, current, straight from the source.</p>
 
   <div class="card">
-    <h3>Search a role</h3>
+    <h3>1. Find the HR / recruiter to contact</h3>
+    <p class="small" style="margin-top:0">The person who owns open roles is in Talent Acquisition, not general HR. Search for them, then send the pitch.</p>
+    <div class="grid g3">
+      <div><label>Skill they hire for</label><input id="h_skill" placeholder="e.g. PL/SQL / BPO / Java"></div>
+      <div><label>City</label><input id="h_loc" placeholder="e.g. Bangalore / Hyderabad"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderHrLinks()">Find HR contacts</button></div>
+    </div>
+    <div id="h_links" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h3>2. Find companies hiring this skill right now</h3>
+    <p class="small" style="margin-top:0">A live opening = a company that needs people = a client you can pitch a candidate to today.</p>
     <div class="grid g3">
       <div><label>Role / skill</label><input id="j_role" placeholder="e.g. PL/SQL Developer"></div>
       <div><label>Location</label><input id="j_loc" placeholder="e.g. Bangalore / Hyderabad / Remote"></div>
-      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderJobLinks()">Search live boards</button></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderJobLinks()">Find live openings</button></div>
     </div>
     <div id="j_links" style="margin-top:12px"></div>
   </div>
 
   <div class="card">
-    <h3>Or search straight from a candidate</h3>
-    <p class="small" style="margin-top:0">One tap fills the role and location from a candidate you've added, then opens the boards.</p>
+    <h3>3. Found a company hiring? Log it as a lead</h3>
+    <p class="small" style="margin-top:0">Saw a company with an open role on the boards above? Drop them here in one tap so you don't lose them. They land in <b>Clients &amp; Outreach</b> as "To contact".</p>
+    <div class="grid g3">
+      <div><label>Company</label><input id="lead_co" placeholder="Company name"></div>
+      <div><label>Role they're hiring</label><input id="lead_req" placeholder="e.g. 2x PL/SQL, Bangalore"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="quickLead()">Add as client lead</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Search from a candidate you have</h3>
+    <p class="small" style="margin-top:0">One tap fills both searches above from a candidate's role and city — find who's hiring them and the HR to call.</p>
     <div id="j_candBtns"></div>
   </div>
 
   <div class="card">
     <h3>The genuine sources (bookmark these)</h3>
-    <p class="small" style="margin-top:0">These are the real, legitimate boards recruiters in India actually use. A company posting here right now is a real opening you can work.</p>
+    <p class="small" style="margin-top:0">The real, legitimate boards recruiters in India actually use.</p>
     <div id="j_sources"></div>
   </div>
 
@@ -281,9 +303,9 @@
     <b>Spot a fake / scam posting (protect your candidates):</b>
     <ul style="margin:6px 0 0;padding-left:20px;font-size:13.5px">
       <li>Asks the candidate to pay a fee, deposit, or "registration" — real jobs never charge the applicant.</li>
-      <li>Offers a salary way above the market for little experience.</li>
+      <li>Offers a salary way above market for little experience.</li>
       <li>Contact is a personal Gmail/WhatsApp only, no company domain email.</li>
-      <li>Vague company name, no website, no real office address.</li>
+      <li>Vague company name, no website, no real office.</li>
       <li>Pushes you to act "immediately", asks for Aadhaar/bank details up front.</li>
     </ul>
     If it smells off, don't forward it to a candidate. Your name is on it.
@@ -954,16 +976,37 @@ function renderJobLinks(){
   w.innerHTML='<div class="small" style="margin-bottom:8px">Live openings for <b>'+esc(r)+'</b>'+(l?' in <b>'+esc(l)+'</b>':'')+' — opens in a new tab:</div>'+
     '<div class="row-actions">'+jobBoards.map(b=>`<a class="btn sm" style="background:${b.color};text-decoration:none" href="${b.url(r,l)}" target="_blank" rel="noopener">${b.name} ↗</a>`).join('')+'</div>';
 }
+/* HR / recruiter searches — the people who own open roles */
+const hrBoards=[
+  {name:'LinkedIn — recruiters',color:'#0a66c2',url:(s,l)=>`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(('talent acquisition recruiter '+s+' '+l).trim())}`},
+  {name:'LinkedIn — companies hiring',color:'#0a66c2',url:(s,l)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(s)}&location=${encodeURIComponent(l||'India')}&f_TPR=r604800`},
+  {name:'Google — HR + email',color:'#137333',url:(s,l)=>`https://www.google.com/search?q=${encodeURIComponent('"talent acquisition" OR recruiter '+s+' '+l+' email')}`},
+  {name:'Naukri — recruiters',color:'#4a6cf7',url:(s,l)=>{const ls=l.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return ls?`https://www.naukri.com/recruiter-jobs-in-${ls}`:'https://www.naukri.com/recruiter-jobs';}}
+];
+function renderHrLinks(){
+  const s=val('h_skill'),l=val('h_loc'),w=document.getElementById('h_links');
+  w.innerHTML='<div class="small" style="margin-bottom:8px">HR / recruiters'+(s?' hiring <b>'+esc(s)+'</b>':'')+(l?' in <b>'+esc(l)+'</b>':'')+' — opens in a new tab:</div>'+
+    '<div class="row-actions">'+hrBoards.map(b=>`<a class="btn sm" style="background:${b.color};text-decoration:none" href="${b.url(s,l)}" target="_blank" rel="noopener">${b.name} ↗</a>`).join('')+'</div>'+
+    '<div class="small" style="margin-top:8px">Found someone? Use the <b>Pitch</b> button on your candidate (Candidates tab) and send it to them.</div>';
+}
+function quickLead(){
+  const co=val('lead_co');if(!co){toast('Enter a company name');return;}
+  db.clients.push({id:nid(),company:co,person:'',role:'Talent Acquisition / Recruiter',type:'IT services / vendor',
+    source:'Naukri job post',req:val('lead_req'),stage:'To contact',terms:'No',contact:'',next:'',notes:'Found hiring on the boards — reach their TA/recruiter.'});
+  save();set('lead_co','');set('lead_req','');renderClients();renderHome();renderSubsOptions();
+  toast('Added to Clients as "To contact" — go pitch them');
+}
 function renderJobCandBtns(){
   const w=document.getElementById('j_candBtns');
-  if(!db.candidates.length){w.innerHTML='<p class="small">Add candidates first, then search jobs for each in one tap.</p>';return;}
+  if(!db.candidates.length){w.innerHTML='<p class="small">Add candidates first, then search for each in one tap.</p>';return;}
   w.innerHTML=db.candidates.map(c=>`<button class="btn ghost sm" style="margin:3px" onclick="jobForCand(${c.id})">${esc(c.name)} — ${esc(c.role||'role?')}</button>`).join('');
 }
 function jobForCand(id){
   const c=db.candidates.find(x=>x.id===id);if(!c)return;
   set('j_role',c.role||'');set('j_loc',c.loc||'');
-  renderJobLinks();
-  document.getElementById('j_links').scrollIntoView({behavior:'smooth',block:'center'});
+  set('h_skill',c.role||'');set('h_loc',c.loc||'');
+  renderJobLinks();renderHrLinks();
+  document.getElementById('h_links').scrollIntoView({behavior:'smooth',block:'center'});
 }
 function renderJobSources(){
   document.getElementById('j_sources').innerHTML=jobSources.map(s=>
