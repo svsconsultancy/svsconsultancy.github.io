@@ -119,6 +119,7 @@
   <button class="active" data-v="home">Dashboard</button>
   <button data-v="candidates">Candidates</button>
   <button data-v="scorecard">Interview Score</button>
+  <button data-v="findjobs">Find Jobs</button>
   <button data-v="clients">Clients &amp; Outreach</button>
   <button data-v="submissions">Submission Log</button>
   <button data-v="templates">Messages</button>
@@ -246,6 +247,46 @@
     <h3>Past scorecards</h3>
     <table id="scoreTable"><thead><tr><th>Date</th><th>Candidate</th><th>Score</th><th>Verdict</th><th></th></tr></thead><tbody></tbody></table>
     <div class="empty" id="scoreEmpty" style="display:none">No scorecards yet. Run one after your next candidate call.</div>
+  </div>
+</section>
+
+<!-- FIND JOBS -->
+<section class="view" id="findjobs">
+  <h2>Find Live Jobs</h2>
+  <p class="sub">Real, current openings from the actual job boards. Nothing here is stored or made up — every button opens a live search, so you always see today's genuine postings straight from the source.</p>
+
+  <div class="card">
+    <h3>Search a role</h3>
+    <div class="grid g3">
+      <div><label>Role / skill</label><input id="j_role" placeholder="e.g. PL/SQL Developer"></div>
+      <div><label>Location</label><input id="j_loc" placeholder="e.g. Bangalore / Hyderabad / Remote"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderJobLinks()">Search live boards</button></div>
+    </div>
+    <div id="j_links" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h3>Or search straight from a candidate</h3>
+    <p class="small" style="margin-top:0">One tap fills the role and location from a candidate you've added, then opens the boards.</p>
+    <div id="j_candBtns"></div>
+  </div>
+
+  <div class="card">
+    <h3>The genuine sources (bookmark these)</h3>
+    <p class="small" style="margin-top:0">These are the real, legitimate boards recruiters in India actually use. A company posting here right now is a real opening you can work.</p>
+    <div id="j_sources"></div>
+  </div>
+
+  <div class="flag">
+    <b>Spot a fake / scam posting (protect your candidates):</b>
+    <ul style="margin:6px 0 0;padding-left:20px;font-size:13.5px">
+      <li>Asks the candidate to pay a fee, deposit, or "registration" — real jobs never charge the applicant.</li>
+      <li>Offers a salary way above the market for little experience.</li>
+      <li>Contact is a personal Gmail/WhatsApp only, no company domain email.</li>
+      <li>Vague company name, no website, no real office address.</li>
+      <li>Pushes you to act "immediately", asks for Aadhaar/bank details up front.</li>
+    </ul>
+    If it smells off, don't forward it to a candidate. Your name is on it.
   </div>
 </section>
 
@@ -886,6 +927,49 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(b)b.onclick=async()=>{if(!deferredPrompt){toast('Use the manual steps below');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installNow').style.display='none';};
 });
 
+/* ---------- find jobs (live searches) ---------- */
+const jobBoards=[
+  {name:'Naukri',color:'#4a6cf7',url:(r,l)=>{
+     const slug=(r.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'jobs');
+     const lslug=l.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+     return lslug?`https://www.naukri.com/${slug}-jobs-in-${lslug}`:`https://www.naukri.com/${slug}-jobs`;}},
+  {name:'LinkedIn',color:'#0a66c2',url:(r,l)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(r)}&location=${encodeURIComponent(l||'India')}`},
+  {name:'Indeed',color:'#2557a7',url:(r,l)=>`https://in.indeed.com/jobs?q=${encodeURIComponent(r)}&l=${encodeURIComponent(l)}`},
+  {name:'Foundit',color:'#7b2ff7',url:(r,l)=>`https://www.foundit.in/srp/results?query=${encodeURIComponent(r)}&locations=${encodeURIComponent(l)}`},
+  {name:'Google Jobs',color:'#137333',url:(r,l)=>`https://www.google.com/search?q=${encodeURIComponent(r+' jobs '+(l?'in '+l:'')) }&ibp=htl;jobs`}
+];
+const jobSources=[
+  {name:'Naukri.com',url:'https://www.naukri.com/',note:'India\'s biggest board. Best for IT + bulk roles.'},
+  {name:'LinkedIn Jobs',url:'https://www.linkedin.com/jobs/',note:'Find the recruiter behind each post.'},
+  {name:'Indeed India',url:'https://in.indeed.com/',note:'Wide net, all sectors.'},
+  {name:'Foundit (ex-Monster)',url:'https://www.foundit.in/',note:'Good for experienced roles.'},
+  {name:'Hirist',url:'https://www.hirist.tech/',note:'IT / tech only.'},
+  {name:'Cutshort',url:'https://cutshort.io/',note:'Startups + tech.'},
+  {name:'apna',url:'https://apna.co/',note:'BPO, entry-level, non-IT, high volume.'}
+];
+function renderJobLinks(){
+  const r=val('j_role'),l=val('j_loc');
+  const w=document.getElementById('j_links');
+  if(!r){w.innerHTML='<p class="small">Type a role above, then search.</p>';return;}
+  w.innerHTML='<div class="small" style="margin-bottom:8px">Live openings for <b>'+esc(r)+'</b>'+(l?' in <b>'+esc(l)+'</b>':'')+' — opens in a new tab:</div>'+
+    '<div class="row-actions">'+jobBoards.map(b=>`<a class="btn sm" style="background:${b.color};text-decoration:none" href="${b.url(r,l)}" target="_blank" rel="noopener">${b.name} ↗</a>`).join('')+'</div>';
+}
+function renderJobCandBtns(){
+  const w=document.getElementById('j_candBtns');
+  if(!db.candidates.length){w.innerHTML='<p class="small">Add candidates first, then search jobs for each in one tap.</p>';return;}
+  w.innerHTML=db.candidates.map(c=>`<button class="btn ghost sm" style="margin:3px" onclick="jobForCand(${c.id})">${esc(c.name)} — ${esc(c.role||'role?')}</button>`).join('');
+}
+function jobForCand(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  set('j_role',c.role||'');set('j_loc',c.loc||'');
+  renderJobLinks();
+  document.getElementById('j_links').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function renderJobSources(){
+  document.getElementById('j_sources').innerHTML=jobSources.map(s=>
+    `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><a href="${s.url}" target="_blank" rel="noopener"><b>${s.name} ↗</b></a><br><span class="small">${esc(s.note)}</span></div>`).join('');
+}
+
 /* ---------- home ---------- */
 function renderHome(){
   const placed=db.candidates.filter(c=>c.stage==='Placed').length+db.submissions.filter(s=>s.status==='Joined').length;
@@ -938,7 +1022,7 @@ function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
 function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
 
-function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();}
+function renderAll(){renderHome();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();renderJobCandBtns();renderJobSources();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
 renderScSliders();calcScore();
