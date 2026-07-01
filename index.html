@@ -648,6 +648,12 @@
     <p class="small">This console runs on one device at a time. To share with Sanju and Shashank: send them this <span class="kbd">svs-console.html</span> file — each runs their own copy. To keep data in sync, one person owns the master, exports weekly, and shares the backup file. (A shared Google Sheet is the simplest "live" alternative once you outgrow this.)</p>
   </div>
   <div class="card">
+    <h3>New here? See it in action</h3>
+    <p class="small" style="margin-top:0">Loads a realistic sample desk — a few jobs, candidates, and a live pipeline — so you can see how everything works before adding your own. Only do this on an empty setup.</p>
+    <button class="btn orange" onclick="loadDemo()">Load sample data</button>
+    <span class="small" id="demoWarn" style="margin-left:8px"></span>
+  </div>
+  <div class="card">
     <h3 style="color:var(--red)">Danger zone</h3>
     <button class="btn danger" onclick="wipeAll()">Erase everything on this device</button>
   </div>
@@ -1407,6 +1413,41 @@ function importData(e){
   r.readAsText(f);
 }
 function wipeAll(){if(!confirm('Erase ALL data on this device? This cannot be undone unless you have a backup.'))return;localStorage.removeItem(KEY);db=JSON.parse(JSON.stringify(seed));save();renderAll();toast('Wiped');}
+function loadDemo(){
+  if(db.openings.length||db.candidates.length||db.clients.length){
+    document.getElementById('demoWarn').textContent='You already have data — clear it first (Erase everything) if you want the sample.';return;
+  }
+  if(!confirm('Load a sample recruitment desk so you can see how it works?'))return;
+  const id=()=>db.seq++;
+  const o1=id(),o2=id(),o3=id();
+  db.openings=[
+    {id:o1,title:'PL/SQL Developer',company:'Acme Tech',loc:'Bangalore',count:'2',ctc:'8-11 LPA',fee:'8.33%',prio:'Hot',status:'Open',terms:'Yes — email confirmed',notes:'Oracle + PL/SQL, 3+ yrs. Two openings.'},
+    {id:o2,title:'BPO Voice Associate',company:'CallFirst',loc:'Hyderabad',count:'10',ctc:'2.5-3 LPA',fee:'₹8000 flat',prio:'Normal',status:'Open',terms:'No',notes:'Bulk hiring, night shift, good English.'},
+    {id:o3,title:'Java Backend Engineer',company:'FinEdge',loc:'Remote',count:'1',ctc:'14-18 LPA',fee:'8.33%',prio:'Normal',status:'Open',terms:'Yes — email confirmed',notes:'Spring Boot, AWS.'}
+  ];
+  const c1=id(),c2=id(),c3=id(),c4=id();
+  db.candidates=[
+    {id:c1,name:'Ramesh K',role:'PL/SQL Developer',type:'Experienced IT',exp:'4 yrs',loc:'Bangalore',comm:'Average',stage:'Interview ready',contact:'',notes:'Strong Oracle background.'},
+    {id:c2,name:'Priya S',role:'PL/SQL Developer',type:'Experienced IT',exp:'3 yrs',loc:'Remote',comm:'Strong',stage:'Resume ready',contact:'',notes:''},
+    {id:c3,name:'Anil M',role:'BPO Voice',type:'Fresher',exp:'Fresher',loc:'Hyderabad',comm:'Average',stage:'Assessed',contact:'',notes:''},
+    {id:c4,name:'Sneha R',role:'Java Backend',type:'Experienced IT',exp:'5 yrs',loc:'Remote',comm:'Strong',stage:'Interview ready',contact:'',notes:'Spring Boot + AWS.'}
+  ];
+  db.clients=[
+    {id:id(),company:'Acme Tech',person:'Ravi (TA)',role:'Talent Acquisition / Recruiter',type:'IT services / vendor',source:'LinkedIn',req:'2x PL/SQL',stage:'Has live req',terms:'Yes — email confirmed',contact:'ravi@acme.example',next:'',notes:'Keen, moves fast.'},
+    {id:id(),company:'CallFirst',person:'Meena (HR)',role:'HR Generalist',type:'BPO',source:'Referral',req:'10x voice',stage:'Terms agreed',terms:'Yes — email confirmed',contact:'',next:'',notes:''}
+  ];
+  db.matches=[
+    {id:id(),openingId:o1,candId:c1,stage:'Interviewing',date:today()},
+    {id:id(),openingId:o1,candId:c2,stage:'Submitted to client',date:today()},
+    {id:id(),openingId:o3,candId:c4,stage:'Offer',date:today()},
+    {id:id(),openingId:o2,candId:c3,stage:'Shortlisted',date:today()}
+  ];
+  db.avgFee=60000;
+  save();renderAll();
+  document.getElementById('demoWarn').textContent='';
+  showView('board');
+  toast('Sample desk loaded — this is the Pipeline board');
+}
 
 /* ---------- helpers ---------- */
 function val(id){return document.getElementById(id).value.trim();}
