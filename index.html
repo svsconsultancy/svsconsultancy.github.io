@@ -137,6 +137,10 @@
 <section class="view active" id="home">
   <h2>Dashboard</h2>
   <p class="sub">Your business at a glance. Everything here is saved on this device automatically.</p>
+  <div class="card" style="margin-bottom:14px">
+    <input id="globalSearch" placeholder="🔍 Search anything — a job, candidate, or company" oninput="renderSearch()" style="font-size:15px">
+    <div id="searchResults" style="margin-top:6px"></div>
+  </div>
   <div class="grid g4" id="stats"></div>
   <div class="grid g2" id="moneyStrip" style="margin-top:6px"></div>
 
@@ -213,7 +217,12 @@
   <button class="btn ghost sm" onclick="showView('openings')" style="margin-bottom:12px">← Back to openings</button>
   <div id="od_head"></div>
   <div class="card">
-    <h3>Match a candidate to this opening</h3>
+    <h3>⚡ Suggested candidates for this job</h3>
+    <p class="small" style="margin-top:0">Ranked automatically by how well they fit — role, location, and how ready they are. Tap Add.</p>
+    <div id="od_suggest"></div>
+  </div>
+  <div class="card">
+    <h3>Or match anyone manually</h3>
     <div class="inline">
       <div><label>Candidate</label><select id="od_cand"></select></div>
       <div style="flex:0"><button class="btn orange" onclick="addMatch()">Add to this job</button></div>
@@ -1153,15 +1162,62 @@ function openOpening(id){
     <div><h2 style="margin:0">${esc(o.title)} ${oPrioPill(o)}</h2>
     <p class="small" style="margin:4px 0 0">${esc(o.company||'company?')}${o.loc?' · '+esc(o.loc):''}${o.ctc?' · '+esc(o.ctc):''} · ${esc(o.count)} position(s)${o.fee?' · fee '+esc(o.fee):''} · terms ${o.terms&&o.terms.startsWith('Yes')?'confirmed ✓':'not yet'}</p>
     ${o.notes?'<p class="small" style="margin:8px 0 0">'+esc(o.notes)+'</p>':''}</div>
-    <div class="row-actions"><button class="btn ghost sm" onclick="editOpeningF(${o.id})">Edit</button><button class="btn danger sm" onclick="delOpening(${o.id})">Delete</button></div>
+    <div class="row-actions"><button class="btn sm" style="background:#25d366" onclick="shareJob(${o.id})">Share job</button><button class="btn ghost sm" onclick="editOpeningF(${o.id})">Edit</button><button class="btn danger sm" onclick="delOpening(${o.id})">Delete</button></div>
   </div></div>`;
-  renderMatchCandOptions();renderMatches();
+  renderMatchCandOptions();renderSuggestions();renderMatches();
 }
 function renderMatchCandOptions(){
   const sel=document.getElementById('od_cand');
   const onJob=new Set(db.matches.filter(m=>m.openingId===curOpening).map(m=>m.candId));
   const avail=db.candidates.filter(c=>!onJob.has(c.id));
   sel.innerHTML=avail.length?avail.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.role||'role?')}</option>`).join(''):'<option value="">All candidates already added (or none exist)</option>';
+}
+/* how well a candidate fits a job: role word overlap + location + readiness */
+function fitScore(cand,op){
+  let s=0;const words=t=>(t||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);
+  const cw=words(cand.role),ow=words(op.title);
+  const overlap=cw.filter(w=>ow.includes(w)).length;
+  s+=overlap*40;                                            // role match is biggest signal
+  if(overlap&&cw.length&&ow.length&&overlap>=Math.min(cw.length,ow.length))s+=10; // strong role match
+  const cl=(cand.loc||'').toLowerCase(),ol=(op.loc||'').toLowerCase();
+  if(cl&&ol&&(cl.includes(ol.split('/')[0].trim())||ol.includes(cl.split('/')[0].trim())||cl.includes('remote')||ol.includes('remote')))s+=25;
+  if(['Interview ready','Resume ready'].includes(cand.stage))s+=20;
+  else if(cand.stage==='Assessed')s+=8;
+  if(cand.comm==='Strong')s+=10;else if(cand.comm==='Average')s+=4;
+  return s;
+}
+function renderSuggestions(){
+  const el=document.getElementById('od_suggest');if(!el)return;
+  const o=db.openings.find(x=>x.id===curOpening);if(!o)return;
+  const onJob=new Set(db.matches.filter(m=>m.openingId===curOpening).map(m=>m.candId));
+  const ranked=db.candidates.filter(c=>!onJob.has(c.id))
+    .map(c=>({c,s:fitScore(c,o)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,5);
+  if(!ranked.length){el.innerHTML='<p class="small">No strong matches among your current candidates. Add more, or match anyone manually above.</p>';return;}
+  el.innerHTML=ranked.map(({c,s})=>{
+    const pct=Math.min(100,s);
+    const tag=pct>=70?['Great fit','#177a42']:pct>=40?['Good fit','#b5740b']:['Possible','#3358b8'];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b>${esc(c.name)}</b> <span class="small">${esc(c.role||'')}${c.loc?' · '+esc(c.loc):''}</span>
+        <div class="barwrap" style="height:6px;margin:4px 0 0;max-width:180px"><div class="bar" style="width:${pct}%;background:${tag[1]}"></div></div></div>
+      <span class="pill" style="background:#eef2fb;color:${tag[1]}">${tag[0]}</span>
+      <button class="btn sm orange" onclick="addMatchCand(${c.id})">Add</button></div>`;
+  }).join('');
+}
+function addMatchCand(cid){
+  const c=db.candidates.find(x=>x.id===cid);if(!c)return;
+  db.matches.push({id:nid(),openingId:curOpening,candId:cid,stage:'Shortlisted',date:today()});
+  save();renderMatchCandOptions();renderMatches();renderSuggestions();renderOpenings();renderHome();toast('Added '+c.name);
+}
+/* share a job to candidate groups via WhatsApp — clean post, no internal notes */
+function shareJob(id){
+  const o=db.openings.find(x=>x.id===id);if(!o)return;
+  let t='SVS Consultancy — we are hiring\n\n';
+  t+='Role: '+(o.title||'')+'\n';
+  if(o.loc)t+='Location: '+o.loc+'\n';
+  if(o.ctc)t+='Salary: '+o.ctc+'\n';
+  if(o.count&&o.count!=='1')t+='Openings: '+o.count+'\n';
+  t+='\nInterested? Send your CV and we will put you forward. No charge to candidates.';
+  waSend(t);
 }
 function addMatch(){
   const sel=document.getElementById('od_cand');const cid=+sel.value;
@@ -1193,6 +1249,22 @@ function renderMatches(){
       <td><button class="btn danger sm" onclick="delMatch(${m.id})">Del</button></td>`;
     tb.appendChild(tr);
   });
+}
+
+/* ---------- global search ---------- */
+function renderSearch(){
+  const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
+  const el=document.getElementById('searchResults');
+  if(!q){el.innerHTML='';return;}
+  const hit=t=>(t||'').toLowerCase().includes(q);
+  const rows=[];
+  db.openings.filter(o=>hit(o.title)||hit(o.company)||hit(o.loc)).slice(0,6)
+    .forEach(o=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openOpening(${o.id})"><span class="pill" style="background:#ffe6cc;color:#c2620a">Job</span> <b>${esc(o.title)}</b> <span class="small">${esc(o.company||'')} ${esc(o.loc||'')}</span></div>`));
+  db.candidates.filter(c=>hit(c.name)||hit(c.role)||hit(c.loc)).slice(0,6)
+    .forEach(c=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="showView('candidates')"><span class="pill" style="background:#e7eefc;color:#3358b8">Candidate</span> <b>${esc(c.name)}</b> <span class="small">${esc(c.role||'')} ${esc(c.loc||'')}</span></div>`));
+  db.clients.filter(c=>hit(c.company)||hit(c.person)).slice(0,6)
+    .forEach(c=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="showView('clients')"><span class="pill" style="background:#d9f3e2;color:#177a42">Company</span> <b>${esc(c.company)}</b> <span class="small">${esc(c.person||'')}</span></div>`));
+  el.innerHTML=rows.length?rows.join(''):'<p class="small">Nothing found for "'+esc(q)+'".</p>';
 }
 
 /* ---------- home ---------- */
