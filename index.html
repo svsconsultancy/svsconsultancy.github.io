@@ -101,6 +101,15 @@
   .topbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .stage-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;font-size:12px}
   .lead{font-size:15px;line-height:1.65}
+  .board{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch}
+  .col{flex:0 0 210px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:80px}
+  .col h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);display:flex;justify-content:space-between}
+  .col h4 span{background:#fff;border-radius:10px;padding:0 7px;font-size:11px}
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 9px;margin-bottom:7px;font-size:13px;box-shadow:0 1px 2px rgba(20,38,77,.05)}
+  .pcard b{font-size:13px}
+  .pcard .mv{display:flex;justify-content:space-between;margin-top:6px;gap:4px}
+  .pcard .mv button{flex:1;padding:3px 0;font-size:11px;border-radius:5px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--navy)}
+  .pcard .mv button:hover{background:var(--soft)}
 </style>
 </head>
 <body>
@@ -118,6 +127,7 @@
 <nav>
   <button class="active" data-v="home">Dashboard</button>
   <button data-v="openings">Job Openings</button>
+  <button data-v="board">Pipeline</button>
   <button data-v="candidates">Candidates</button>
   <button data-v="scorecard">Interview Score</button>
   <button data-v="findjobs">Find Jobs</button>
@@ -234,6 +244,20 @@
     <table id="od_matches"><thead><tr><th>Candidate</th><th>Stage</th><th>Move</th><th></th></tr></thead><tbody></tbody></table>
     <div class="empty" id="od_matchEmpty" style="display:none">No candidates matched yet. Add one above.</div>
   </div>
+</section>
+
+<!-- PIPELINE BOARD -->
+<section class="view" id="board">
+  <h2>Pipeline Board</h2>
+  <p class="sub">Every candidate across every job, on one screen, sorted by stage. This is your command center — tap ◀ ▶ to move anyone along. Filter to one job if you want to focus.</p>
+  <div class="card">
+    <div class="inline">
+      <div><label>Show</label><select id="b_filter" onchange="renderBoard()"><option value="">All jobs</option></select></div>
+      <div style="flex:0;align-self:flex-end"><span class="small" id="b_summary"></span></div>
+    </div>
+  </div>
+  <div class="board" id="boardCols"></div>
+  <div class="empty" id="boardEmpty" style="display:none">Nothing in the pipeline yet. Add a job in <b>Job Openings</b> and match candidates to it — they'll show up here.</div>
 </section>
 
 <!-- CANDIDATES -->
@@ -1162,7 +1186,7 @@ function openOpening(id){
     <div><h2 style="margin:0">${esc(o.title)} ${oPrioPill(o)}</h2>
     <p class="small" style="margin:4px 0 0">${esc(o.company||'company?')}${o.loc?' · '+esc(o.loc):''}${o.ctc?' · '+esc(o.ctc):''} · ${esc(o.count)} position(s)${o.fee?' · fee '+esc(o.fee):''} · terms ${o.terms&&o.terms.startsWith('Yes')?'confirmed ✓':'not yet'}</p>
     ${o.notes?'<p class="small" style="margin:8px 0 0">'+esc(o.notes)+'</p>':''}</div>
-    <div class="row-actions"><button class="btn sm" style="background:#25d366" onclick="shareJob(${o.id})">Share job</button><button class="btn ghost sm" onclick="editOpeningF(${o.id})">Edit</button><button class="btn danger sm" onclick="delOpening(${o.id})">Delete</button></div>
+    <div class="row-actions"><button class="btn sm" style="background:#25d366" onclick="shareJob(${o.id})">Share job</button><button class="btn sm" onclick="sendShortlist(${o.id})">Send shortlist</button><button class="btn ghost sm" onclick="editOpeningF(${o.id})">Edit</button><button class="btn danger sm" onclick="delOpening(${o.id})">Delete</button></div>
   </div></div>`;
   renderMatchCandOptions();renderSuggestions();renderMatches();
 }
@@ -1219,6 +1243,21 @@ function shareJob(id){
   t+='\nInterested? Send your CV and we will put you forward. No charge to candidates.';
   waSend(t);
 }
+/* send the client a clean shortlist of matched candidates for this job */
+function sendShortlist(id){
+  const o=db.openings.find(x=>x.id===id);if(!o)return;
+  const ms=db.matches.filter(m=>m.openingId===id&&!['Rejected','Backed out'].includes(m.stage));
+  if(!ms.length){toast('No candidates matched to this job yet');return;}
+  let t='Hi, sharing profiles for '+(o.title||'the role')+(o.loc?' ('+o.loc+')':'')+':\n\n';
+  ms.forEach((m,i)=>{
+    const c=db.candidates.find(x=>x.id===m.candId);if(!c)return;
+    t+=(i+1)+'. '+(c.name||'')+(c.exp?' — '+c.exp:'')+(c.loc?' — '+c.loc:'')+'\n';
+    if(c.role)t+='   '+c.role+'\n';
+  });
+  t+='\nCan share full CVs on your confirmation. — SVS Consultancy';
+  navigator.clipboard.writeText(t).catch(()=>{});
+  waSend(t);
+}
 function addMatch(){
   const sel=document.getElementById('od_cand');const cid=+sel.value;
   if(!cid){toast('No candidate to add');return;}
@@ -1233,7 +1272,7 @@ function moveMatch(id,dir){
   // keep candidate record roughly in sync with best signal
   const c=db.candidates.find(x=>x.id===m.candId);
   if(c){if(m.stage==='Joined')c.stage='Placed';else if(['Submitted to client','Interviewing','Offer'].includes(m.stage)&&c.stage!=='Placed')c.stage='Submitted to client';}
-  save();renderMatches();renderOpenings();renderHome();renderCandidates();
+  save();renderMatches();renderOpenings();renderHome();renderCandidates();renderBoard();
 }
 function delMatch(id){if(!confirm('Remove this candidate from the job?'))return;db.matches=db.matches.filter(m=>m.id!==id);save();renderMatchCandOptions();renderMatches();renderOpenings();renderHome();}
 function renderMatches(){
@@ -1249,6 +1288,42 @@ function renderMatches(){
       <td><button class="btn danger sm" onclick="delMatch(${m.id})">Del</button></td>`;
     tb.appendChild(tr);
   });
+}
+
+/* ---------- pipeline board ---------- */
+const BOARD_COLS=['Shortlisted','Submitted to client','Interviewing','Offer','Joined'];
+function renderBoardFilter(){
+  const sel=document.getElementById('b_filter');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All jobs</option>'+db.openings.map(o=>`<option value="${o.id}">${esc(o.title)}${o.company?' — '+esc(o.company):''}</option>`).join('');
+  sel.value=cur;
+}
+function renderBoard(){
+  const wrap=document.getElementById('boardCols');if(!wrap)return;
+  renderBoardFilter();
+  const filt=document.getElementById('b_filter').value;
+  let ms=db.matches.filter(m=>!['Rejected','Backed out'].includes(m.stage));
+  if(filt)ms=ms.filter(m=>String(m.openingId)===filt);
+  document.getElementById('boardEmpty').style.display=ms.length?'none':'block';
+  document.getElementById('boardCols').style.display=ms.length?'flex':'none';
+  const inFlight=ms.filter(m=>m.stage!=='Joined').length;
+  const joined=ms.filter(m=>m.stage==='Joined').length;
+  document.getElementById('b_summary').innerHTML=`<b>${inFlight}</b> in play · <b style="color:var(--green)">${joined}</b> joined`;
+  wrap.innerHTML=BOARD_COLS.map(stage=>{
+    const inCol=ms.filter(m=>m.stage===stage);
+    const cards=inCol.map(m=>{
+      const c=db.candidates.find(x=>x.id===m.candId);const nm=c?c.name:'(removed)';
+      const o=db.openings.find(x=>x.id===m.openingId);const job=o?o.title:'(job removed)';
+      const i=MATCH_STAGES.indexOf(m.stage);
+      const canL=i>0, canR=i<BOARD_COLS.length-1; // don't push past Joined on the board
+      return `<div class="pcard"><b>${esc(nm)}</b><br><span class="small">${esc(job)}${o&&o.company?' · '+esc(o.company):''}</span>
+        <div class="mv">
+          <button onclick="moveMatch(${m.id},-1)" ${canL?'':'disabled style=opacity:.3'}>◀</button>
+          <button onclick="moveMatch(${m.id},1)" ${canR?'':'disabled style=opacity:.3'}>▶</button>
+        </div></div>`;
+    }).join('');
+    return `<div class="col"><h4>${stage.replace(' to client','')}<span>${inCol.length}</span></h4>${cards||'<p class="small" style="text-align:center;padding:8px 0">—</p>'}</div>`;
+  }).join('');
 }
 
 /* ---------- global search ---------- */
@@ -1343,7 +1418,7 @@ function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
 function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
 
-function renderAll(){renderHome();renderOpenings();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();renderJobCandBtns();renderJobSources();}
+function renderAll(){renderHome();renderOpenings();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();renderJobCandBtns();renderJobSources();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
 if(db.avgFee)document.getElementById('f_avg').value=db.avgFee;
