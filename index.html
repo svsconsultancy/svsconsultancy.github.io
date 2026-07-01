@@ -644,8 +644,17 @@
     <input type="file" id="importFile" accept=".json" onchange="importData(event)">
   </div>
   <div class="card">
-    <h3>Share with partners</h3>
-    <p class="small">This console runs on one device at a time. To share with Sanju and Shashank: send them this <span class="kbd">svs-console.html</span> file — each runs their own copy. To keep data in sync, one person owns the master, exports weekly, and shares the backup file. (A shared Google Sheet is the simplest "live" alternative once you outgrow this.)</p>
+    <h3>🤝 Team merge — work together without a server</h3>
+    <p class="small" style="margin-top:0">The three of you can share one combined desk over WhatsApp, no accounts, no server, no cost. Here's the routine:</p>
+    <ol class="small" style="padding-left:18px;margin:6px 0">
+      <li>Each of you works on your own device — add your jobs, candidates, clients.</li>
+      <li>Once a day, everyone taps <b>Download backup file</b> above and shares it in the group.</li>
+      <li>Each person imports the others' files with <b>Merge</b> below.</li>
+    </ol>
+    <p class="small">Merge is smart: it combines everything and skips duplicates automatically. Your data is never wiped — new stuff just gets added. (Import above is different: that one <b>replaces</b> everything, use it only to restore a full backup.)</p>
+    <label style="margin-top:6px">Merge a teammate's file into yours</label>
+    <input type="file" id="mergeFile" accept=".json" onchange="mergeImport(event)">
+    <div id="mergeResult" style="margin-top:8px"></div>
   </div>
   <div class="card">
     <h3>New here? See it in action</h3>
@@ -1409,8 +1418,71 @@ function exportData(){
 }
 function importData(e){
   const f=e.target.files[0];if(!f)return;const r=new FileReader();
-  r.onload=()=>{try{db=JSON.parse(r.result);save();renderAll();toast('Data restored');}catch(x){toast('Bad file');}};
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.candidates&&!d.openings)throw 0;db=d;if(!db.openings)db.openings=[];if(!db.matches)db.matches=[];if(!db.scores)db.scores=[];if(!db.plan)db.plan={};save();renderAll();toast('Data restored');}catch(x){toast('Bad file');}};
   r.readAsText(f);
+}
+/* TEAM MERGE — fold a teammate's backup into this one without a server.
+   The hard part: their ids collide with ours. So we re-key every incoming
+   record to a fresh id, remap all references, and dedupe by real identity. */
+function mergeData(inc){
+  ['openings','candidates','clients','matches','submissions','scores'].forEach(k=>{if(!inc[k])inc[k]=[];});
+  const norm=s=>(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const oMap={},cMap={},clMap={};
+  const added={openings:0,candidates:0,clients:0,matches:0,submissions:0,scores:0};
+  // openings: dedupe by title+company
+  inc.openings.forEach(o=>{
+    const key=norm(o.title)+'|'+norm(o.company);
+    const ex=db.openings.find(x=>norm(x.title)+'|'+norm(x.company)===key);
+    if(ex)oMap[o.id]=ex.id; else{const n=nid();oMap[o.id]=n;db.openings.push({...o,id:n});added.openings++;}
+  });
+  // candidates: dedupe by name+role (fall back to name)
+  inc.candidates.forEach(c=>{
+    const key=norm(c.name)+'|'+norm(c.role);
+    const ex=db.candidates.find(x=>norm(x.name)+'|'+norm(x.role)===key)||(norm(c.name)&&db.candidates.find(x=>norm(x.name)===norm(c.name)));
+    if(ex)cMap[c.id]=ex.id; else{const n=nid();cMap[c.id]=n;db.candidates.push({...c,id:n});added.candidates++;}
+  });
+  // clients: dedupe by company
+  inc.clients.forEach(c=>{
+    const key=norm(c.company);
+    const ex=key&&db.clients.find(x=>norm(x.company)===key);
+    if(ex)clMap[c.id]=ex.id; else{const n=nid();clMap[c.id]=n;db.clients.push({...c,id:n});added.clients++;}
+  });
+  // matches: remap refs, drop orphans, dedupe by (opening,candidate)
+  inc.matches.forEach(m=>{
+    const oid=oMap[m.openingId],cid=cMap[m.candId];
+    if(oid==null||cid==null)return;
+    if(db.matches.some(x=>x.openingId===oid&&x.candId===cid))return;
+    db.matches.push({...m,id:nid(),openingId:oid,candId:cid});added.matches++;
+  });
+  // submissions: dedupe by candName+clientName+date
+  inc.submissions.forEach(s=>{
+    if(db.submissions.some(x=>norm(x.candName)===norm(s.candName)&&norm(x.clientName)===norm(s.clientName)&&x.date===s.date))return;
+    db.submissions.unshift({...s,id:nid(),candId:cMap[s.candId]??s.candId,clientId:clMap[s.clientId]??s.clientId});added.submissions++;
+  });
+  // scores: dedupe by candName+date+pct
+  inc.scores.forEach(sc=>{
+    if(db.scores.some(x=>norm(x.candName)===norm(sc.candName)&&x.date===sc.date&&x.pct===sc.pct))return;
+    db.scores.unshift({...sc,id:nid(),candId:cMap[sc.candId]??sc.candId});added.scores++;
+  });
+  // plan checkboxes: OR them together. avgFee: keep ours, else theirs.
+  if(inc.plan)Object.keys(inc.plan).forEach(k=>{if(inc.plan[k])db.plan[k]=true;});
+  if(inc.avgFee&&!db.avgFee)db.avgFee=inc.avgFee;
+  save();
+  return added;
+}
+function mergeImport(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{
+    let inc;try{inc=JSON.parse(r.result);}catch(x){toast('Bad file');return;}
+    if(!inc.candidates&&!inc.openings){toast('That is not an SVS backup file');return;}
+    const a=mergeData(inc);renderAll();
+    const parts=Object.keys(a).filter(k=>a[k]>0).map(k=>a[k]+' '+k);
+    document.getElementById('mergeResult').innerHTML=parts.length
+      ? '<div class="ok-box">Merged in: '+parts.join(', ')+'. Duplicates were skipped automatically.</div>'
+      : '<div class="ok-box">Nothing new — everything in that file was already here.</div>';
+    toast('Merge complete');
+  };
+  r.readAsText(f);e.target.value='';
 }
 function wipeAll(){if(!confirm('Erase ALL data on this device? This cannot be undone unless you have a backup.'))return;localStorage.removeItem(KEY);db=JSON.parse(JSON.stringify(seed));save();renderAll();toast('Wiped');}
 function loadDemo(){
