@@ -241,7 +241,7 @@
   </div>
   <div class="card">
     <h3>Candidates on this job</h3>
-    <table id="od_matches"><thead><tr><th>Candidate</th><th>Stage</th><th>Move</th><th></th></tr></thead><tbody></tbody></table>
+    <table id="od_matches"><thead><tr><th>Candidate</th><th>Stage</th><th>Interview</th><th>Move</th><th></th></tr></thead><tbody></tbody></table>
     <div class="empty" id="od_matchEmpty" style="display:none">No candidates matched yet. Add one above.</div>
   </div>
 </section>
@@ -290,6 +290,13 @@
         </select>
       </div>
       <div><label>Contact (phone/email)</label><input id="c_contact" placeholder="optional"></div>
+      <div><label>Lead source</label>
+        <select id="c_source">
+          <option>Referral</option><option>Naukri / portal</option><option>LinkedIn</option>
+          <option>WhatsApp group</option><option>Walk-in</option><option>Campus</option>
+          <option>Social / Instagram</option><option>Past contact</option><option>Other</option>
+        </select>
+      </div>
       <div><label>Notes</label><input id="c_notes" placeholder="optional"></div>
     </div>
     <div style="margin-top:12px" class="topbtns">
@@ -756,17 +763,17 @@ let editCand=null;
 function saveCandidate(){
   const name=val('c_name');if(!name){toast('Name required');return;}
   const obj={id:editCand||nid(),name,role:val('c_role'),type:val('c_type'),exp:val('c_exp'),
-    loc:val('c_loc'),comm:val('c_comm'),stage:val('c_stage'),contact:val('c_contact'),notes:val('c_notes')};
+    loc:val('c_loc'),comm:val('c_comm'),stage:val('c_stage'),contact:val('c_contact'),source:val('c_source'),notes:val('c_notes')};
   if(editCand){const i=db.candidates.findIndex(c=>c.id===editCand);db.candidates[i]=obj;}
   else db.candidates.push(obj);
   save();clearCandForm();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();toast('Candidate saved');
 }
 function editCandidate(id){const c=db.candidates.find(x=>x.id===id);editCand=id;
   set('c_name',c.name);set('c_role',c.role);set('c_type',c.type);set('c_exp',c.exp);
-  set('c_loc',c.loc);set('c_comm',c.comm);set('c_stage',c.stage);set('c_contact',c.contact);set('c_notes',c.notes);
+  set('c_loc',c.loc);set('c_comm',c.comm);set('c_stage',c.stage);set('c_contact',c.contact);set('c_source',c.source||'Referral');set('c_notes',c.notes);
   document.getElementById('c_editing').textContent='Editing: '+c.name;window.scrollTo(0,0);}
 function clearCandForm(){editCand=null;['c_name','c_role','c_exp','c_loc','c_contact','c_notes'].forEach(i=>set(i,''));
-  set('c_type','Fresher');set('c_comm','Not yet tested');set('c_stage','New');document.getElementById('c_editing').textContent='';}
+  set('c_type','Fresher');set('c_comm','Not yet tested');set('c_stage','New');set('c_source','Referral');document.getElementById('c_editing').textContent='';}
 function delCandidate(id){if(!confirm('Delete this candidate?'))return;db.candidates=db.candidates.filter(c=>c.id!==id);save();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();}
 const stageColor={'New':'background:#e9edf6;color:#16264d','Assessed':'background:#e7eefc;color:#3358b8','Resume ready':'background:#fff0db;color:#b5740b','Interview ready':'background:#ffe6cc;color:#c2620a','Submitted to client':'background:#dce9ff;color:#1f4fb0','Placed':'background:#d9f3e2;color:#177a42'};
 function renderCandidates(){
@@ -775,7 +782,7 @@ function renderCandidates(){
   db.candidates.forEach(c=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><b>${esc(c.name)}</b>${c.notes?'<br><span class="small">'+esc(c.notes)+'</span>':''}</td>
-      <td>${esc(c.role)}<br><span class="small">${esc(c.type)} ${c.exp?'· '+esc(c.exp):''}</span></td>
+      <td>${esc(c.role)}<br><span class="small">${esc(c.type)} ${c.exp?'· '+esc(c.exp):''}${c.source?' · via '+esc(c.source):''}</span></td>
       <td>${esc(c.type)}</td><td>${esc(c.loc)||'<span class="small">—</span>'}</td>
       <td>${esc(c.comm)}</td>
       <td><span class="pill" style="${stageColor[c.stage]||''}">${esc(c.stage)}</span></td>
@@ -1323,13 +1330,20 @@ function renderMatches(){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><b>${esc(nm)}</b>${c&&c.role?'<br><span class="small">'+esc(c.role)+'</span>':''}</td>
       <td><span class="pill" style="${matchColor[m.stage]||''}">${esc(m.stage)}</span></td>
+      <td><input type="datetime-local" value="${m.interview||''}" onchange="setInterview(${m.id},this.value)" style="font-size:12px;padding:5px"></td>
       <td class="row-actions"><button class="btn ghost sm" onclick="moveMatch(${m.id},-1)">◀</button><button class="btn sm" onclick="moveMatch(${m.id},1)">▶</button></td>
       <td><button class="btn danger sm" onclick="delMatch(${m.id})">Del</button></td>`;
     tb.appendChild(tr);
   });
 }
-
-/* ---------- pipeline board ---------- */
+/* HR coordination: schedule an interview on a match. auto-bumps stage to Interviewing. */
+function setInterview(id,val){
+  const m=db.matches.find(x=>x.id===id);if(!m)return;
+  m.interview=val||'';
+  if(val&&MATCH_STAGES.indexOf(m.stage)<MATCH_STAGES.indexOf('Interviewing')){m.stage='Interviewing';syncCandidateStage(m.candId);}
+  save();renderMatches();renderHome();renderOpenings();renderBoard();
+  toast(val?'Interview scheduled':'Interview cleared');
+}
 const BOARD_COLS=['Shortlisted','Submitted to client','Interviewing','Offer','Joined'];
 function renderBoardFilter(){
   const sel=document.getElementById('b_filter');if(!sel)return;
@@ -1419,8 +1433,12 @@ function renderHome(){
   if(openJobs){rm.style.display='block';rm.innerHTML=`You're working <b>${openJobs}</b> open job${openJobs>1?'s':''}. Open each one and match your ready candidates to it.`;}
   else rm.style.display='none';
 
-  // today list — overdue follow-ups first (most important), then jobs needing candidates, then the rest
+  // today list — interviews first (most time-sensitive), then follow-ups, then jobs, then the rest
   const todo=[],t0=today();
+  db.matches.filter(m=>m.interview&&m.stage==='Interviewing').sort((a,b)=>a.interview<b.interview?-1:1)
+    .forEach(m=>{const c=db.candidates.find(x=>x.id===m.candId);const o=db.openings.find(x=>x.id===m.openingId);
+      const d=m.interview.replace('T',' ');const soon=m.interview.slice(0,10)<=t0;
+      todo.push((soon?'<b style="color:#c2620a">Interview:</b> ':'<b style="color:#3358b8">Interview:</b> ')+esc(c?c.name:'candidate')+' for '+esc(o?o.title:'a role')+' — '+esc(d)+'.');});
   db.clients.filter(c=>c.next&&c.next<=t0&&!['Dead','Placed with them'].includes(c.stage))
     .forEach(c=>todo.push((c.next<t0?'<b style="color:#c33">Overdue:</b> ':'<b style="color:#b5740b">Due today:</b> ')+'follow up with <b>'+esc(c.company)+'</b> ('+esc(c.person||'contact')+').'));
   db.openings.filter(o=>o.status==='Open'&&!db.matches.some(m=>m.openingId===o.id&&!['Rejected','Backed out'].includes(m.stage)))
