@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVS Consultancy — Operations Console</title>
+<meta name="theme-color" content="#16264d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SVS Console">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --navy:#16264d; --navy2:#1f3566; --orange:#f47b20; --orange2:#ff9544;
+    --ink:#1b2333; --muted:#6b7689; --line:#e3e7ef; --bg:#f4f6fb; --card:#fff;
+    --green:#1f9d55; --red:#d23b3b; --amber:#d9971a; --soft:#eef2fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5}
+  a{color:var(--navy2)}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:18px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{display:flex;align-items:center;gap:12px}
+  .mark{width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--navy);font-size:18px;letter-spacing:-1px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .mark span{color:var(--orange)}
+  .brand h1{margin:0;font-size:19px;font-weight:700;letter-spacing:.3px}
+  .brand p{margin:1px 0 0;font-size:12px;color:#aebbd8;letter-spacing:2px;text-transform:uppercase}
+  .tagline{margin-left:auto;font-size:13px;color:#cdd6ea;font-style:italic}
+  nav{background:var(--navy2);display:flex;gap:2px;padding:0 16px;flex-wrap:wrap;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+  nav button{background:transparent;border:0;color:#b9c4de;padding:13px 16px;font-size:14px;cursor:pointer;border-bottom:3px solid transparent;font-weight:600;transition:.15s}
+  nav button:hover{color:#fff;background:rgba(255,255,255,.06)}
+  nav button.active{color:#fff;border-bottom-color:var(--orange)}
+  main{max-width:1180px;margin:0 auto;padding:22px 18px 80px}
+  .view{display:none;animation:fade .25s}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:21px;margin:4px 0 4px}
+  .sub{color:var(--muted);margin:0 0 18px;font-size:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(20,38,77,.04)}
+  .card h3{margin:0 0 10px;font-size:16px}
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:820px){.g2,.g3,.g4{grid-template-columns:1fr}.tagline{display:none}}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center}
+  .stat .n{font-size:30px;font-weight:800;color:var(--navy)}
+  .stat .l{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:2px}
+  .stat.accent .n{color:var(--orange)}
+  label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:10px 0 4px}
+  input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;font-size:14px;font-family:inherit;background:#fff;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--navy2);box-shadow:0 0 0 3px rgba(31,53,102,.1)}
+  textarea{resize:vertical;min-height:72px}
+  button.btn{background:var(--navy2);color:#fff;border:0;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+  button.btn:hover{background:var(--navy)}
+  button.btn.orange{background:var(--orange)}
+  button.btn.orange:hover{background:#e06d12}
+  button.btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  button.btn.ghost:hover{background:var(--soft)}
+  button.btn.sm{padding:6px 10px;font-size:12.5px}
+  button.btn.danger{background:#fff;border:1px solid #f0c7c7;color:var(--red)}
+  button.btn.danger:hover{background:#fce8e8}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th{text-align:left;padding:9px 10px;background:var(--soft);color:var(--navy);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--line)}
+  td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:hover td{background:#fafbfe}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11.5px;font-weight:700;white-space:nowrap}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap}
+  .tmpl{background:#fbfcfe;border:1px solid var(--line);border-left:4px solid var(--orange);border-radius:8px;padding:14px;white-space:pre-wrap;font-size:13.5px;line-height:1.55;margin:8px 0}
+  .copybar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px}
+  .copybar b{font-size:14px}
+  details{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;background:#fff;overflow:hidden}
+  details summary{padding:13px 16px;cursor:pointer;font-weight:700;font-size:14.5px;background:#fff;list-style:none;display:flex;align-items:center;gap:10px}
+  details summary::-webkit-details-marker{display:none}
+  details summary:before{content:"▸";color:var(--orange);font-size:13px;transition:.2s}
+  details[open] summary:before{transform:rotate(90deg)}
+  details[open] summary{background:var(--soft);border-bottom:1px solid var(--line)}
+  .det-body{padding:14px 18px;font-size:14px}
+  .det-body ul{margin:6px 0;padding-left:20px}
+  .det-body li{margin:5px 0}
+  .flag{background:#fff7ee;border:1px solid #ffd9a8;border-radius:8px;padding:11px 14px;margin:8px 0;font-size:13.5px}
+  .flag b{color:#c2620a}
+  .danger-box{background:#fdf0f0;border:1px solid #f3c4c4;border-radius:8px;padding:11px 14px;margin:8px 0;font-size:13.5px}
+  .ok-box{background:#eefaf2;border:1px solid #bce6cb;border-radius:8px;padding:11px 14px;margin:8px 0;font-size:13.5px}
+  .check{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .check:last-child{border-bottom:0}
+  .check input{width:18px;height:18px;margin-top:2px;flex-shrink:0;cursor:pointer}
+  .check label{margin:0;text-transform:none;letter-spacing:0;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer}
+  .check .done{text-decoration:line-through;color:var(--muted)}
+  .small{font-size:12.5px;color:var(--muted)}
+  .inline{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .inline>div{flex:1;min-width:120px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 20px;border-radius:24px;font-size:14px;font-weight:600;box-shadow:0 6px 22px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:.25s;z-index:100}
+  .toast.show{opacity:1;bottom:34px}
+  .empty{text-align:center;color:var(--muted);padding:26px;font-size:14px}
+  .barwrap{background:var(--line);border-radius:20px;height:10px;overflow:hidden;margin:6px 0}
+  .bar{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:20px;transition:.4s}
+  .kbd{background:#eef2fb;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:12px;font-family:monospace}
+  .moneyout{font-size:28px;font-weight:800;color:var(--green);margin-top:8px}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:4px}
+  .topbtns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .stage-legend{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;font-size:12px}
+  .lead{font-size:15px;line-height:1.65}
+  .board{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch}
+  .col{flex:0 0 210px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:80px}
+  .col h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--navy);display:flex;justify-content:space-between}
+  .col h4 span{background:#fff;border-radius:10px;padding:0 7px;font-size:11px}
+  .pcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 9px;margin-bottom:7px;font-size:13px;box-shadow:0 1px 2px rgba(20,38,77,.05)}
+  .pcard b{font-size:13px}
+  .pcard .mv{display:flex;justify-content:space-between;margin-top:6px;gap:4px}
+  .pcard .mv button{flex:1;padding:3px 0;font-size:11px;border-radius:5px;border:1px solid var(--line);background:#fff;cursor:pointer;color:var(--navy)}
+  .pcard .mv button:hover{background:var(--soft)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="mark">S<span>V</span>S</div>
+    <div class="brand">
+      <h1>SVS Consultancy</h1>
+      <p>Operations Console</p>
+    </div>
+  </div>
+  <div class="tagline">Restart. Rebuild. Get Placed.</div>
+</header>
+
+<nav>
+  <button class="active" data-v="home">Dashboard</button>
+  <button data-v="guide">Guide</button>
+  <button data-v="openings">Job Openings</button>
+  <button data-v="board">Pipeline</button>
+  <button data-v="candidates">Candidates</button>
+  <button data-v="scorecard">Interview Score</button>
+  <button data-v="findjobs">Find Jobs</button>
+  <button data-v="clients">Clients &amp; Outreach</button>
+  <button data-v="submissions">Submission Log</button>
+  <button data-v="templates">Messages</button>
+  <button data-v="playbook">HR Playbook</button>
+  <button data-v="fees">Fee Calculator</button>
+  <button data-v="plan">90-Day Plan</button>
+  <button data-v="team">Team</button>
+  <button data-v="data">Backup</button>
+  <button data-v="install">Install</button>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<section class="view active" id="home">
+  <h2>Dashboard</h2>
+  <p class="sub">Your business at a glance. Everything here is saved on this device automatically.</p>
+  <div class="card" style="margin-bottom:14px">
+    <input id="globalSearch" placeholder="🔍 Search anything — a job, candidate, or company" oninput="renderSearch()" style="font-size:15px">
+    <div id="searchResults" style="margin-top:6px"></div>
+  </div>
+  <div class="grid g4" id="stats"></div>
+  <div class="grid g2" id="moneyStrip" style="margin-top:6px"></div>
+
+  <div class="card" style="margin-top:6px">
+    <h3>Your funnel</h3>
+    <p class="small" style="margin-top:0">Candidates flow left to right toward a placement. If a stage is empty, that's where to push.</p>
+    <div id="funnel"></div>
+    <p class="hint" id="avgFeeNote"></p>
+  </div>
+
+  <div class="grid g2" style="margin-top:6px">
+    <div class="card">
+      <h3>What needs you today</h3>
+      <div id="todayList"></div>
+    </div>
+    <div class="card">
+      <h3>The one number that matters</h3>
+      <p class="small" style="margin-top:0">Jobs are the engine. Every open job is money waiting to be earned. Fill it by matching a ready candidate.</p>
+      <div style="text-align:center;padding:8px 0">
+        <div style="font-size:46px;font-weight:800;color:var(--orange)" id="openReqs">0</div>
+        <div class="small">open jobs you're working right now</div>
+      </div>
+      <div class="ok-box" id="reqMsg" style="display:none"></div>
+      <div class="flag" id="reqWarn">No open jobs yet. Add the first one in <b>Job Openings</b>, or grab one from <b>Find Jobs</b>. Jobs come first — candidates get matched to them.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>The model, in one line</h3>
+    <p class="lead" style="margin:4px 0">You source candidates for free, get them ready, and put them in front of companies. Companies pay you a fee when someone joins. Training is the optional add-on candidates can pay for. <b>Keep training money and placement promises separate</b> — sell training as training, never as a guaranteed job.</p>
+  </div>
+</section>
+
+<!-- GUIDE -->
+<section class="view" id="guide">
+  <h2>How to use this — the whole thing in plain words</h2>
+  <p class="sub">New here, or handing this to Sanju or Shashank? Read this once. Every tab explained, plus the daily routine. Tap any row to open it.</p>
+
+  <div class="ok-box"><b>The one-line model:</b> a company has a job → you add it as an Opening → you match a ready candidate to it → you move them along the pipeline → they join → the company pays you a fee. Candidates never pay you.</div>
+
+  <details open><summary>⭐ The 5-minute daily routine</summary><div class="det-body">
+    <ol>
+      <li>Open the <b>Dashboard</b>. Do whatever it says under "What needs you today" — interviews, follow-ups, jobs needing candidates.</li>
+      <li>Check the <b>Pipeline</b> board. Move anyone who progressed (◀ ▶).</li>
+      <li>Add any new <b>candidates</b> or <b>jobs</b> that came in.</li>
+      <li>Once a day, tap <b>Backup → Download</b> and drop the file in your WhatsApp group. Merge the others' files.</li>
+    </ol>
+    <p>That's it. Everything else is there when you need it.</p>
+  </div></details>
+
+  <details><summary>Job Openings — the heart of it</summary><div class="det-body">
+    <p>Every job you're working, across all companies. Add role, company, location, fee, priority. Tap a job to open it, then match candidates and track each one. <b>Jobs come first</b> — you match candidates to jobs, not the other way around. Hot jobs float to the top.</p>
+  </div></details>
+
+  <details><summary>Pipeline — your whole desk on one screen</summary><div class="det-body">
+    <p>Every candidate across every job, in columns by stage: Shortlisted → Submitted → Interviewing → Offer → Joined. Tap ◀ ▶ on a card to move someone. Filter to one job to focus. This is the screen to live in day to day.</p>
+  </div></details>
+
+  <details><summary>Candidates — your people</summary><div class="det-body">
+    <p>Everyone looking for a job. Track role, experience, location, how ready they are, and <b>where they came from</b> (lead source) so you learn which channels work. Two one-tap buttons: <b>Pitch</b> (a teaser to send an HR before they've said yes) and <b>Profile</b> (the full details, after they've said yes). Both open WhatsApp ready to send.</p>
+  </div></details>
+
+  <details><summary>Interview Score — is this person ready?</summary><div class="det-body">
+    <p>After a quick call with a candidate, slide the five bars (communication, skill, confidence, professionalism, readiness). It gives an honest verdict and updates their stage. Stops you sending a not-ready person to a client.</p>
+  </div></details>
+
+  <details><summary>Find Jobs — find HR and companies hiring</summary><div class="det-body">
+    <p>The half that pays. Search live for recruiters to contact and companies hiring right now (real searches, straight to Naukri/LinkedIn/etc). Spot a hiring company? One tap adds it as a client and an open job. Also has the "spot a fake job" checklist to protect your candidates.</p>
+  </div></details>
+
+  <details><summary>Clients &amp; Outreach — the companies that pay</summary><div class="det-body">
+    <p>Every company and HR contact. Track their stage, whether terms are in writing, and set a <b>follow-up date</b> — overdue ones jump onto your dashboard so nothing gets forgotten. This is where the money side lives.</p>
+  </div></details>
+
+  <details><summary>Submission Log — your fee protection</summary><div class="det-body">
+    <p>Every time you send a candidate to a company, log it with the date. If a company later tries the "we already had them, no fee" move, this dated record is your proof. Log every submission the moment you send it.</p>
+  </div></details>
+
+  <details><summary>Messages — ready-to-send texts</summary><div class="det-body">
+    <p>Copy or WhatsApp-send proven messages: candidate outreach, the employer pitch, the terms confirmation (send this before any profile), and the profile header. Fill the [brackets] before sending.</p>
+  </div></details>
+
+  <details><summary>Sending things on WhatsApp</summary><div class="det-body">
+    <p>Green buttons open WhatsApp with the message already typed. Job's "Share job" posts it to candidate groups. Candidate's "Profile" and a job's "Send shortlist" go to the client. You just pick the contact and hit send.</p>
+  </div></details>
+
+  <details><summary>Team merge — all three of you, one desk, no server</summary><div class="det-body">
+    <p>Each of you works on your own device. Once a day, everyone downloads their backup (Backup tab) and shares it in the group. Each person <b>merges</b> the others' files — it combines everything and skips duplicates automatically, never wipes your data. That's how the three of you stay on the same page for free.</p>
+  </div></details>
+
+  <details><summary>The rest</summary><div class="det-body">
+    <ul>
+      <li><b>HR Playbook</b> — how to find HR, talk money, and not get cheated. Read once.</li>
+      <li><b>Fee Calculator</b> — quote clients and plan monthly targets.</li>
+      <li><b>90-Day Plan</b> — the launch order, tick as you go.</li>
+      <li><b>Team</b> — each partner's profile.</li>
+      <li><b>Backup</b> — save your data (do it weekly), and merge teammates' files.</li>
+      <li><b>Install</b> — put it on your phone like an app.</li>
+    </ul>
+  </div></details>
+
+  <div class="flag" style="margin-top:14px"><b>The two rules that matter most:</b> (1) Back up weekly — your data lives only in this browser. (2) Get terms in writing before sending any profile, and log every submission — that's what protects your fee.</div>
+</section>
+
+<!-- OPENINGS -->
+<section class="view" id="openings">
+  <h2>Job Openings</h2>
+  <p class="sub">The heart of the desk. Every job you're working, across all companies and regions. Add an opening, match candidates to it, and track each one from submitted to joined. This is what a real recruitment agency runs on.</p>
+
+  <div class="card">
+    <h3>Add an opening</h3>
+    <div class="grid g3">
+      <div><label>Role title</label><input id="o_title" placeholder="e.g. PL/SQL Developer"></div>
+      <div><label>Company</label><input id="o_company" placeholder="Company / client name"></div>
+      <div><label>Location / region</label><input id="o_loc" placeholder="e.g. Bangalore / Hyderabad / Remote"></div>
+      <div><label>Positions open</label><input type="number" id="o_count" placeholder="e.g. 2" value="1"></div>
+      <div><label>Salary / CTC range</label><input id="o_ctc" placeholder="e.g. 6-9 LPA"></div>
+      <div><label>Our fee</label><input id="o_fee" placeholder="e.g. 8.33% / ₹8000 flat"></div>
+      <div><label>Priority</label><select id="o_prio"><option>Normal</option><option>Hot</option><option>Low</option></select></div>
+      <div><label>Status</label><select id="o_status"><option>Open</option><option>On hold</option><option>Filled</option><option>Closed / lost</option></select></div>
+      <div><label>Terms in writing?</label><select id="o_terms"><option>No</option><option>Yes — email confirmed</option></select></div>
+    </div>
+    <label>Notes (JD, must-haves, who to send to)</label><textarea id="o_notes" placeholder="What the company wants, interview process, contact..."></textarea>
+    <div class="topbtns" style="margin-top:12px">
+      <button class="btn orange" onclick="saveOpening()">Save opening</button>
+      <button class="btn ghost" onclick="clearOpeningForm()">Clear</button>
+      <span class="small" id="o_editing" style="align-self:center"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stage-legend">
+      <span class="pill" style="background:#ffe6cc;color:#c2620a">Hot</span>
+      <span class="pill" style="background:#d9f3e2;color:#177a42">Open</span>
+      <span class="pill" style="background:#fff0db;color:#b5740b">On hold</span>
+      <span class="pill" style="background:#e9edf6;color:#16264d">Filled / Closed</span>
+    </div>
+    <div id="openingsList"></div>
+    <div class="empty" id="openingsEmpty" style="display:none">No openings yet. Add the first job you're working above — or grab one from Find Jobs. Jobs come first; candidates get matched to them.</div>
+  </div>
+</section>
+
+<!-- OPENING DETAIL (match tracker) -->
+<section class="view" id="openingDetail">
+  <button class="btn ghost sm" onclick="showView('openings')" style="margin-bottom:12px">← Back to openings</button>
+  <div id="od_head"></div>
+  <div class="card">
+    <h3>⚡ Suggested candidates for this job</h3>
+    <p class="small" style="margin-top:0">Ranked automatically by how well they fit — role, location, and how ready they are. Tap Add.</p>
+    <div id="od_suggest"></div>
+  </div>
+  <div class="card">
+    <h3>Or match anyone manually</h3>
+    <div class="inline">
+      <div><label>Candidate</label><select id="od_cand"></select></div>
+      <div style="flex:0"><button class="btn orange" onclick="addMatch()">Add to this job</button></div>
+    </div>
+    <p class="hint">Only candidates not already on this job show up. Each match gets its own pipeline below.</p>
+  </div>
+  <div class="card">
+    <h3>Candidates on this job</h3>
+    <table id="od_matches"><thead><tr><th>Candidate</th><th>Stage</th><th>Interview</th><th>Move</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="od_matchEmpty" style="display:none">No candidates matched yet. Add one above.</div>
+  </div>
+</section>
+
+<!-- PIPELINE BOARD -->
+<section class="view" id="board">
+  <h2>Pipeline Board</h2>
+  <p class="sub">Every candidate across every job, on one screen, sorted by stage. This is your command center — tap ◀ ▶ to move anyone along. Filter to one job if you want to focus.</p>
+  <div class="card">
+    <div class="inline">
+      <div><label>Show</label><select id="b_filter" onchange="renderBoard()"><option value="">All jobs</option></select></div>
+      <div style="flex:0;align-self:flex-end"><span class="small" id="b_summary"></span></div>
+    </div>
+  </div>
+  <div class="board" id="boardCols"></div>
+  <div class="empty" id="boardEmpty" style="display:none">Nothing in the pipeline yet. Add a job in <b>Job Openings</b> and match candidates to it — they'll show up here.</div>
+</section>
+
+<!-- CANDIDATES -->
+<section class="view" id="candidates">
+  <h2>Candidate Pipeline</h2>
+  <p class="sub">Your supply side. Track who you have and how ready they are to put forward.</p>
+
+  <div class="card">
+    <h3>Add / edit candidate</h3>
+    <div class="grid g3">
+      <div><label>Name</label><input id="c_name" placeholder="Full name"></div>
+      <div><label>Role / skill</label><input id="c_role" placeholder="e.g. PL/SQL Developer"></div>
+      <div><label>Type</label>
+        <select id="c_type">
+          <option>Fresher</option><option>Career gap</option><option>Career switch</option>
+          <option>Women restart</option><option>BPO</option><option>Experienced IT</option>
+        </select>
+      </div>
+      <div><label>Experience</label><input id="c_exp" placeholder="e.g. 3 yrs / Fresher"></div>
+      <div><label>Location preference</label><input id="c_loc" placeholder="e.g. Bangalore / WFH"></div>
+      <div><label>Communication</label>
+        <select id="c_comm">
+          <option>Strong</option><option>Average</option><option>Needs work</option><option>Not yet tested</option>
+        </select>
+      </div>
+      <div><label>Readiness stage</label>
+        <select id="c_stage">
+          <option>New</option><option>Assessed</option><option>Resume ready</option>
+          <option>Interview ready</option><option>Submitted to client</option><option>Placed</option>
+        </select>
+      </div>
+      <div><label>Contact (phone/email)</label><input id="c_contact" placeholder="optional"></div>
+      <div><label>Lead source</label>
+        <select id="c_source">
+          <option>Referral</option><option>Naukri / portal</option><option>LinkedIn</option>
+          <option>WhatsApp group</option><option>Walk-in</option><option>Campus</option>
+          <option>Social / Instagram</option><option>Past contact</option><option>Other</option>
+        </select>
+      </div>
+      <div><label>Notes</label><input id="c_notes" placeholder="optional"></div>
+    </div>
+    <div style="margin-top:12px" class="topbtns">
+      <button class="btn orange" onclick="saveCandidate()">Save candidate</button>
+      <button class="btn ghost" onclick="clearCandForm()">Clear</button>
+      <span class="small" id="c_editing" style="align-self:center"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stage-legend">
+      <span class="pill" style="background:#e9edf6;color:var(--navy)">New</span>
+      <span class="pill" style="background:#e7eefc;color:#3358b8">Assessed</span>
+      <span class="pill" style="background:#fff0db;color:#b5740b">Resume ready</span>
+      <span class="pill" style="background:#ffe6cc;color:#c2620a">Interview ready</span>
+      <span class="pill" style="background:#dce9ff;color:#1f4fb0">Submitted</span>
+      <span class="pill" style="background:#d9f3e2;color:#177a42">Placed</span>
+    </div>
+    <table id="candTable"><thead><tr>
+      <th>Name</th><th>Role</th><th>Type</th><th>Loc</th><th>Comm</th><th>Stage</th><th>Actions</th>
+    </tr></thead><tbody></tbody></table>
+    <div class="empty" id="candEmpty" style="display:none">No candidates yet. Add your first one above.</div>
+  </div>
+</section>
+
+<!-- SCORECARD -->
+<section class="view" id="scorecard">
+  <h2>Interview Scorecard</h2>
+  <p class="sub">Rate a candidate on a quick call. Slide each bar, get an honest verdict, save it to their record. Takes two minutes and stops you putting a not-ready candidate in front of a client.</p>
+
+  <div class="card">
+    <div class="grid g2">
+      <div><label>Which candidate</label><select id="sc_cand"></select></div>
+      <div><label>Date of call</label><input type="date" id="sc_date"></div>
+    </div>
+    <div id="sc_sliders"></div>
+    <label>Quick notes (what stood out, good or bad)</label>
+    <textarea id="sc_notes" placeholder="e.g. clear on technical answers, but nervous and spoke too fast on the intro"></textarea>
+    <div class="card" style="background:var(--soft);margin-top:14px;text-align:center">
+      <div class="small">Overall readiness</div>
+      <div id="sc_score" style="font-size:40px;font-weight:800;color:var(--navy)">—</div>
+      <div id="sc_verdict" style="font-weight:700;margin-bottom:6px"></div>
+      <div class="barwrap" style="max-width:340px;margin:0 auto"><div class="bar" id="sc_bar" style="width:0%"></div></div>
+      <div class="small" id="sc_advice" style="margin-top:10px"></div>
+    </div>
+    <div class="topbtns" style="margin-top:14px">
+      <button class="btn orange" onclick="saveScore()">Save score to candidate</button>
+      <button class="btn ghost" onclick="resetScore()">Reset</button>
+    </div>
+    <p class="hint">Saving updates that candidate's readiness stage automatically — a strong score moves them toward "Interview ready," a weak one keeps them in training.</p>
+  </div>
+
+  <div class="card">
+    <h3>Past scorecards</h3>
+    <table id="scoreTable"><thead><tr><th>Date</th><th>Candidate</th><th>Score</th><th>Verdict</th><th></th></tr></thead><tbody></tbody></table>
+    <div class="empty" id="scoreEmpty" style="display:none">No scorecards yet. Run one after your next candidate call.</div>
+  </div>
+</section>
+
+<!-- FIND JOBS -->
+<section class="view" id="findjobs">
+  <h2>Find HR &amp; Hiring Companies</h2>
+  <p class="sub">This is the half that pays. Find the recruiters and companies hiring right now, reach them, and turn each one into a client. Every button opens a live search — real, current, straight from the source.</p>
+
+  <div class="card">
+    <h3>1. Find the HR / recruiter to contact</h3>
+    <p class="small" style="margin-top:0">The person who owns open roles is in Talent Acquisition, not general HR. Search for them, then send the pitch.</p>
+    <div class="grid g3">
+      <div><label>Skill they hire for</label><input id="h_skill" placeholder="e.g. PL/SQL / BPO / Java"></div>
+      <div><label>City</label><input id="h_loc" placeholder="e.g. Bangalore / Hyderabad"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderHrLinks()">Find HR contacts</button></div>
+    </div>
+    <div id="h_links" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h3>2. Find companies hiring this skill right now</h3>
+    <p class="small" style="margin-top:0">A live opening = a company that needs people = a client you can pitch a candidate to today.</p>
+    <div class="grid g3">
+      <div><label>Role / skill</label><input id="j_role" placeholder="e.g. PL/SQL Developer"></div>
+      <div><label>Location</label><input id="j_loc" placeholder="e.g. Bangalore / Hyderabad / Remote"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="renderJobLinks()">Find live openings</button></div>
+    </div>
+    <div id="j_links" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h3>3. Found a company hiring? Log it as a lead</h3>
+    <p class="small" style="margin-top:0">Saw a company with an open role on the boards above? Drop them here in one tap so you don't lose them. They land in <b>Clients &amp; Outreach</b> as "To contact".</p>
+    <div class="grid g3">
+      <div><label>Company</label><input id="lead_co" placeholder="Company name"></div>
+      <div><label>Role they're hiring</label><input id="lead_req" placeholder="e.g. 2x PL/SQL, Bangalore"></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn orange" style="width:100%" onclick="quickLead()">Add as client lead</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Search from a candidate you have</h3>
+    <p class="small" style="margin-top:0">One tap fills both searches above from a candidate's role and city — find who's hiring them and the HR to call.</p>
+    <div id="j_candBtns"></div>
+  </div>
+
+  <div class="card">
+    <h3>The genuine sources (bookmark these)</h3>
+    <p class="small" style="margin-top:0">The real, legitimate boards recruiters in India actually use.</p>
+    <div id="j_sources"></div>
+  </div>
+
+  <div class="flag">
+    <b>Spot a fake / scam posting (protect your candidates):</b>
+    <ul style="margin:6px 0 0;padding-left:20px;font-size:13.5px">
+      <li>Asks the candidate to pay a fee, deposit, or "registration" — real jobs never charge the applicant.</li>
+      <li>Offers a salary way above market for little experience.</li>
+      <li>Contact is a personal Gmail/WhatsApp only, no company domain email.</li>
+      <li>Vague company name, no website, no real office.</li>
+      <li>Pushes you to act "immediately", asks for Aadhaar/bank details up front.</li>
+    </ul>
+    If it smells off, don't forward it to a candidate. Your name is on it.
+  </div>
+</section>
+
+<!-- CLIENTS -->
+<section class="view" id="clients">
+  <h2>Clients &amp; Outreach</h2>
+  <p class="sub">Your demand side — the half that pays. Track every company and HR contact here.</p>
+
+  <div class="card">
+    <h3>Add / edit client contact</h3>
+    <div class="grid g3">
+      <div><label>Company</label><input id="cl_company" placeholder="Company name"></div>
+      <div><label>Contact person</label><input id="cl_person" placeholder="HR / TA / hiring manager name"></div>
+      <div><label>Their role</label>
+        <select id="cl_role">
+          <option>Talent Acquisition / Recruiter</option>
+          <option>Hiring Manager</option>
+          <option>HR Generalist</option>
+          <option>Founder / Owner</option>
+          <option>Unknown</option>
+        </select>
+      </div>
+      <div><label>Company type</label>
+        <select id="cl_type">
+          <option>BPO</option><option>IT services / vendor</option><option>Startup / SME</option>
+          <option>MNC</option><option>Staffing partner</option>
+        </select>
+      </div>
+      <div><label>Source</label>
+        <select id="cl_source">
+          <option>Warm intro</option><option>LinkedIn</option><option>Naukri job post</option>
+          <option>Referral</option><option>Cold</option>
+        </select>
+      </div>
+      <div><label>Open requirement?</label><input id="cl_req" placeholder="e.g. 2x PL/SQL, Bangalore"></div>
+      <div><label>Stage</label>
+        <select id="cl_stage">
+          <option>To contact</option><option>Contacted</option><option>Replied</option>
+          <option>Terms agreed</option><option>Has live req</option><option>Placed with them</option><option>Dead</option>
+        </select>
+      </div>
+      <div><label>Terms in writing?</label>
+        <select id="cl_terms"><option>No</option><option>Yes — email confirmed</option></select>
+      </div>
+      <div><label>Contact (email/phone/LinkedIn)</label><input id="cl_contact" placeholder="optional"></div>
+      <div><label>Follow up on</label><input type="date" id="cl_next"><div class="hint">When to chase them next. Overdue ones show on your dashboard.</div></div>
+    </div>
+    <label>Notes / last conversation</label><textarea id="cl_notes" placeholder="What was discussed, next step, fee quoted..."></textarea>
+    <div style="margin-top:12px" class="topbtns">
+      <button class="btn orange" onclick="saveClient()">Save client</button>
+      <button class="btn ghost" onclick="clearClientForm()">Clear</button>
+      <span class="small" id="cl_editing" style="align-self:center"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <table id="clientTable"><thead><tr>
+      <th>Company</th><th>Contact</th><th>Type</th><th>Open req</th><th>Terms</th><th>Stage</th><th>Actions</th>
+    </tr></thead><tbody></tbody></table>
+    <div class="empty" id="clientEmpty" style="display:none">No clients yet. Start with people you already know who hire — that's your warmest first client.</div>
+  </div>
+</section>
+
+<!-- SUBMISSIONS -->
+<section class="view" id="submissions">
+  <h2>Submission Log</h2>
+  <p class="sub">This is your protection. Every time you send a candidate to a company, log it here with the date. If a company tries to skip your fee by claiming "we already had them," this dated record is your proof.</p>
+
+  <div class="danger-box">
+    <b>Why this page exists:</b> backdoor hiring is the #1 way recruitment agencies lose money. You send a profile, the company hires them directly and says "no fee." A dated submission record settles it — whoever submitted first, with proof, owns the candidate. Log <b>every</b> submission the moment you send it.
+  </div>
+
+  <div class="card">
+    <h3>Log a submission</h3>
+    <div class="grid g3">
+      <div><label>Candidate</label><select id="s_cand"></select></div>
+      <div><label>Company</label><select id="s_client"></select></div>
+      <div><label>Date submitted</label><input type="date" id="s_date"></div>
+      <div><label>Role submitted for</label><input id="s_role" placeholder="e.g. PL/SQL Developer"></div>
+      <div><label>Terms agreed first?</label>
+        <select id="s_terms"><option>Yes</option><option>No — RISKY</option></select>
+      </div>
+      <div><label>Status</label>
+        <select id="s_status">
+          <option>Submitted</option><option>Shortlisted</option><option>Interviewing</option>
+          <option>Offer</option><option>Joined</option><option>Rejected</option><option>Backed out</option>
+        </select>
+      </div>
+    </div>
+    <label>Proof note (where/how you sent it)</label><input id="s_proof" placeholder="e.g. Emailed to ravi@company.com, profile PDF attached">
+    <div style="margin-top:12px"><button class="btn orange" onclick="saveSubmission()">Log submission</button></div>
+  </div>
+
+  <div class="card">
+    <table id="subTable"><thead><tr>
+      <th>Date</th><th>Candidate</th><th>Company</th><th>Role</th><th>Terms</th><th>Status</th><th></th>
+    </tr></thead><tbody></tbody></table>
+    <div class="empty" id="subEmpty" style="display:none">No submissions logged yet.</div>
+  </div>
+</section>
+
+<!-- TEMPLATES -->
+<section class="view" id="templates">
+  <h2>Message Library</h2>
+  <p class="sub">Copy, fill the brackets, send. Pick the right one for the audience.</p>
+
+  <div class="flag"><b>Before you send anything:</b> fill in <span class="kbd">[email]</span> and <span class="kbd">[@handle]</span> with your real SVS contact. A message with no destination reads exactly like a scam. Keep the name consistent everywhere — your logo says <b>SVS Consultancy</b>, so use that, not "Technologies."</div>
+
+  <div class="card" id="tmplWrap"></div>
+</section>
+
+<!-- PLAYBOOK -->
+<section class="view" id="playbook">
+  <h2>HR Outreach Playbook</h2>
+  <p class="sub">How to find the right HR, reach them, talk money, and not get cheated. Read once, refer back often.</p>
+
+  <details open><summary>1. The mindset that wins</summary><div class="det-body">
+    <p>You're not "asking HR to empanel you." You're a vendor with a product: a ready candidate who fits a real opening. The warmest opener is never "we're a new consultancy, please add us." It's:</p>
+    <div class="ok-box">"I have a PL/SQL developer, 3 years, available now, open to Bangalore or WFH. Do you have a need?"</div>
+    <p>Lead with the candidate, never the service. Companies don't care that you exist. They care that you can fill a seat today.</p>
+  </div></details>
+
+  <details><summary>2. Pick the RIGHT person (most people message the wrong one)</summary><div class="det-body">
+    <ul>
+      <li><b>Talent Acquisition / Recruiter / TA</b> — owns the open jobs. <b>This is your person.</b></li>
+      <li><b>Hiring Manager</b> (e.g. "Database Lead") — needs the person directly. Often faster at small companies.</li>
+      <li><b>HR Generalist / HR Manager</b> — payroll, policy, attendance. Does <b>not</b> own openings. Messaging them goes nowhere.</li>
+    </ul>
+    <p><b>Pick the right kind of company too.</b> Big MNCs won't talk to an unknown agency (months of empanelment). Start where the door is open:</p>
+    <ul>
+      <li><b>BPOs</b> hiring in bulk — TA teams always short, easiest entry.</li>
+      <li><b>IT services / staffing firms</b> — be a sub-vendor, take their overflow roles, place immediately.</li>
+      <li><b>Startups / SMEs</b> — no internal recruiting team, they need you more.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>3. How to find them</summary><div class="det-body">
+    <p>A company posting a job <b>right now</b> is the strongest buying signal there is.</p>
+    <ul>
+      <li><b>Your own network first.</b> One warm intro beats 100 cold messages. List everyone you know in HR or who runs a company.</li>
+      <li><b>Naukri / LinkedIn job posts</b> — find an open role, then find who posted it.</li>
+      <li><b>LinkedIn search:</b> "Talent Acquisition" or "Recruiter" + company or city.</li>
+    </ul>
+  </div></details>
+
+  <details><summary>4. The money talk — pin down 3 things in writing</summary><div class="det-body">
+    <p>Standard India recruitment fee: a percentage of the candidate's annual salary, commonly around <b>8.33% (one month's salary)</b>, ranging roughly 6–12%. Bulk BPO is often a flat fee per joiner. Use the <b>Fee Calculator</b> tab to quote.</p>
+    <p>Before sending a single profile, get these confirmed (an email reply is enough):</p>
+    <ul>
+      <li><b>The fee</b> — the % or flat amount.</li>
+      <li><b>Replacement guarantee</b> — if the candidate quits within ~90 days, you replace free.</li>
+      <li><b>When you get paid</b> — normally on joining date, invoice with a 30-day window.</li>
+    </ul>
+    <div class="ok-box">"Confirming our terms: 8.33% on joining, 90-day replacement, payment within 30 days." — get them to reply "confirmed." That reply is your protection.</div>
+  </div></details>
+
+  <details><summary>5. The negative poles — how agencies get cheated (and the defense)</summary><div class="det-body">
+    <div class="danger-box"><b>Backdoor hiring (the big one).</b> You send a profile, the company hires them directly and claims no fee. <br><b>Defense:</b> never send a profile without agreed terms first. Header every profile "Submitted by SVS Consultancy on [date], subject to our terms." Keep the dated email. Log it in the Submission Log.</div>
+    <div class="danger-box"><b>"We already have this candidate."</b> Sometimes true, often an excuse. <br><b>Defense:</b> your dated submission email settles it — first to submit with proof wins.</div>
+    <div class="danger-box"><b>Ghost / fake requirements.</b> No real intent — collecting profiles to map salaries or pressure their vendor. <br><b>Spot it:</b> vague JD, no urgency, won't share interview process or timeline, keeps asking for "more profiles" but never schedules. <br><b>Defense:</b> ask how many positions, the interview process, the timeline, who makes the final call. Real openings have real answers.</div>
+    <div class="danger-box"><b>Non-payment after joining.</b> Candidate joins, invoice gets dodged. <br><b>Defense:</b> only extend trust to companies that confirmed terms. Follow up firmly on the agreed date.</div>
+    <div class="danger-box"><b>"Prove yourself first" trap.</b> "Place one free, then we'll sign." They ghost after. <br><b>Defense:</b> terms before profiles, always. A serious client confirms terms over email without fuss.</div>
+    <div class="danger-box"><b>Fake HR.</b> The "HR" is fishing for candidate data or trying to charge your candidates. <br><b>Defense:</b> verify — real company email domain (not random Gmail), real LinkedIn, real office. If an "HR" ever asks your candidate to pay, it's a scam. Walk.</div>
+    <div class="ok-box"><b>The thread through all six:</b> terms in writing before profiles, and a dated record of every submission. Do these two religiously and you've closed off most ways to get cheated.</div>
+  </div></details>
+
+  <details><summary>6. Protect your own reputation</summary><div class="det-body">
+    <ul>
+      <li>Never promise a candidate a job in exchange for money. Sell training as training.</li>
+      <li>Keep the SVS name and contact consistent everywhere — mismatched names read as fly-by-night.</li>
+      <li>Be anonymous as a person if you like, but the <b>business</b> must be named and reachable. No company pays an invoice to an anonymous account.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- FEES -->
+<section class="view" id="fees">
+  <h2>Fee Calculator</h2>
+  <p class="sub">Quote clients correctly and see what you'd actually earn per placement.</p>
+  <div class="grid g2">
+    <div class="card">
+      <h3>Percentage model (IT / experienced)</h3>
+      <label>Candidate annual salary (₹ CTC)</label>
+      <input type="number" id="f_ctc" placeholder="e.g. 600000" oninput="calcFee()">
+      <label>Your fee %</label>
+      <input type="number" id="f_pct" value="8.33" step="0.01" oninput="calcFee()">
+      <div class="hint">Industry norm ~8.33% (one month). Range 6–12%.</div>
+      <div class="moneyout" id="f_out">₹0</div>
+      <div class="small">per successful placement, paid on joining</div>
+    </div>
+    <div class="card">
+      <h3>Flat-fee model (BPO / bulk)</h3>
+      <label>Flat fee per joiner (₹)</label>
+      <input type="number" id="f_flat" placeholder="e.g. 8000" oninput="calcFee()">
+      <label>Number of joiners</label>
+      <input type="number" id="f_count" placeholder="e.g. 10" oninput="calcFee()">
+      <div class="moneyout" id="f_flatout">₹0</div>
+      <div class="small">total for this batch</div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Monthly target planner</h3>
+    <div class="inline">
+      <div><label>Income goal / month (₹)</label><input type="number" id="f_goal" placeholder="e.g. 100000" oninput="calcFee()"></div>
+      <div><label>Avg fee per placement (₹)</label><input type="number" id="f_avg" placeholder="e.g. 50000" oninput="calcFee()"></div>
+    </div>
+    <div class="ok-box" id="f_target" style="margin-top:12px">Enter a goal and average fee to see how many placements you need.</div>
+  </div>
+</section>
+
+<!-- PLAN -->
+<section class="view" id="plan">
+  <h2>90-Day Launch Plan</h2>
+  <p class="sub">The order that actually works. Tick as you go — progress saves automatically.</p>
+  <div class="card">
+    <div class="copybar"><b>Overall progress</b><span class="small" id="planPct">0%</span></div>
+    <div class="barwrap"><div class="bar" id="planBar" style="width:0%"></div></div>
+  </div>
+  <div id="planWrap"></div>
+</section>
+
+<!-- TEAM -->
+<section class="view" id="team">
+  <h2>The Team</h2>
+  <p class="sub">Who runs SVS. Each partner fills in their own profile — your lane, what you're good at, a short bio. Tap Edit on your own card. Nothing here is public unless you put it on the LinkedIn page yourself.</p>
+  <div id="teamCards"></div>
+  <div class="card">
+    <button class="btn ghost sm" onclick="addTeamMember()">+ Add another team member</button>
+  </div>
+</section>
+
+<!-- DATA -->
+<section class="view" id="data">
+  <h2>Backup &amp; Restore</h2>
+  <p class="sub">Everything lives in this browser on this device. If you clear the browser or switch devices, you lose it — unless you back up. Do this weekly.</p>
+  <div class="card">
+    <h3>Export</h3>
+    <p class="small">Downloads a single file with all your jobs, candidates, clients, matches, submissions, and progress. Keep it in Google Drive or email it to yourself.</p>
+    <button class="btn orange" onclick="exportData()">Download backup file</button>
+  </div>
+  <div class="card">
+    <h3>Import</h3>
+    <p class="small">Restore from a backup file (replaces current data).</p>
+    <input type="file" id="importFile" accept=".json" onchange="importData(event)">
+  </div>
+  <div class="card">
+    <h3>🤝 Team merge — work together without a server</h3>
+    <p class="small" style="margin-top:0">The three of you can share one combined desk over WhatsApp, no accounts, no server, no cost. Here's the routine:</p>
+    <ol class="small" style="padding-left:18px;margin:6px 0">
+      <li>Each of you works on your own device — add your jobs, candidates, clients.</li>
+      <li>Once a day, everyone taps <b>Download backup file</b> above and shares it in the group.</li>
+      <li>Each person imports the others' files with <b>Merge</b> below.</li>
+    </ol>
+    <p class="small">Merge is smart: it combines everything and skips duplicates automatically. Your data is never wiped — new stuff just gets added. (Import above is different: that one <b>replaces</b> everything, use it only to restore a full backup.)</p>
+    <label style="margin-top:6px">Merge a teammate's file into yours</label>
+    <input type="file" id="mergeFile" accept=".json" onchange="mergeImport(event)">
+    <div id="mergeResult" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h3>New here? See it in action</h3>
+    <p class="small" style="margin-top:0">Loads a realistic sample desk — a few jobs, candidates, and a live pipeline — so you can see how everything works before adding your own. Only do this on an empty setup.</p>
+    <button class="btn orange" onclick="loadDemo()">Load sample data</button>
+    <span class="small" id="demoWarn" style="margin-left:8px"></span>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--red)">Danger zone</h3>
+    <button class="btn danger" onclick="wipeAll()">Erase everything on this device</button>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="view" id="install">
+  <h2>Put it on your phone</h2>
+  <p class="sub">Install SVS Console like a real app. One tap to open, no browser bar, works offline.</p>
+  <div class="card" id="installNow" style="display:none">
+    <h3>One-tap install</h3>
+    <p class="small">Your browser supports direct install. Tap the button.</p>
+    <button class="btn orange" id="installBtn">Install SVS Console</button>
+  </div>
+  <div class="card">
+    <h3>On an iPhone (Safari)</h3>
+    <ol class="lead" style="padding-left:20px">
+      <li>Open this page in <b>Safari</b> (not Chrome).</li>
+      <li>Tap the <b>Share</b> button (the square with an arrow, at the bottom).</li>
+      <li>Scroll down, tap <b>Add to Home Screen</b>.</li>
+      <li>Tap <b>Add</b>. The SVS icon now sits on your home screen like any app.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>On an Android phone (Chrome)</h3>
+    <ol class="lead" style="padding-left:20px">
+      <li>Open this page in <b>Chrome</b>.</li>
+      <li>Tap the <b>⋮</b> menu (top right).</li>
+      <li>Tap <b>Add to Home screen</b> / <b>Install app</b>.</li>
+      <li>Tap <b>Add</b>. Done — it's on your home screen.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>On a laptop (Chrome / Edge)</h3>
+    <p class="lead">Look for the small <b>install icon</b> (a screen with a down-arrow) on the right edge of the address bar, and click it. Or use the one-tap button above if it appears.</p>
+  </div>
+  <div class="ok-box">Reminder: installing it does not back up your data. Your candidates and clients still live in this one browser. Use the <b>Backup</b> tab weekly regardless.</div>
+</section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div id="welcome" style="display:none;position:fixed;inset:0;background:rgba(16,38,77,.6);z-index:200;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#fff;border-radius:14px;max-width:440px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <h2 style="margin:0 0 4px">Welcome to SVS Console</h2>
+    <p class="small" style="margin:0 0 14px">Your whole consultancy in one place. Here's the short version:</p>
+    <div class="check"><span style="color:var(--orange)">1</span><label><b>Candidates</b> — add the people looking for jobs.</label></div>
+    <div class="check"><span style="color:var(--orange)">2</span><label><b>Clients</b> — add companies and HR contacts. This side pays.</label></div>
+    <div class="check"><span style="color:var(--orange)">3</span><label><b>Messages</b> — copy ready-made texts to send.</label></div>
+    <div class="check"><span style="color:var(--orange)">4</span><label><b>90-Day Plan</b> — if unsure what to do, start there.</label></div>
+    <p class="small" style="margin:14px 0">Everything saves on this device. Back up weekly from the Backup tab.</p>
+    <button class="btn orange" style="width:100%" onclick="closeWelcome()">Got it, let's go</button>
+  </div>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+const KEY='svs_console_v1';
+const seed={
+  openings:[],
+  candidates:[],
+  clients:[],
+  matches:[],
+  submissions:[],
+  scores:[],
+  team:[
+    {id:'t1',name:'Vikas',lane:'Client side',title:'',skills:'',bio:'',contact:''},
+    {id:'t2',name:'Sanju',lane:'Candidate side',title:'',skills:'',bio:'',contact:''},
+    {id:'t3',name:'Shashank',lane:'Coordination',title:'',skills:'',bio:'',contact:''}
+  ],
+  plan:{},
+  seq:1
+}
+let db=load();
+function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+function nid(){return db.seq++;}
+
+/* ---------- nav ---------- */
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.getElementById(b.dataset.v).classList.add('active');
+  window.scrollTo(0,0);
+  renderAll();
+});
+
+/* ---------- toast ---------- */
+let tt;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1800);}
+
+/* ---------- candidates ---------- */
+let editCand=null;
+function saveCandidate(){
+  const name=val('c_name');if(!name){toast('Name required');return;}
+  const obj={id:editCand||nid(),name,role:val('c_role'),type:val('c_type'),exp:val('c_exp'),
+    loc:val('c_loc'),comm:val('c_comm'),stage:val('c_stage'),contact:val('c_contact'),source:val('c_source'),notes:val('c_notes')};
+  if(editCand){const i=db.candidates.findIndex(c=>c.id===editCand);db.candidates[i]=obj;}
+  else db.candidates.push(obj);
+  save();clearCandForm();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();toast('Candidate saved');
+}
+function editCandidate(id){const c=db.candidates.find(x=>x.id===id);editCand=id;
+  set('c_name',c.name);set('c_role',c.role);set('c_type',c.type);set('c_exp',c.exp);
+  set('c_loc',c.loc);set('c_comm',c.comm);set('c_stage',c.stage);set('c_contact',c.contact);set('c_source',c.source||'Referral');set('c_notes',c.notes);
+  document.getElementById('c_editing').textContent='Editing: '+c.name;window.scrollTo(0,0);}
+function clearCandForm(){editCand=null;['c_name','c_role','c_exp','c_loc','c_contact','c_notes'].forEach(i=>set(i,''));
+  set('c_type','Fresher');set('c_comm','Not yet tested');set('c_stage','New');set('c_source','Referral');document.getElementById('c_editing').textContent='';}
+function delCandidate(id){if(!confirm('Delete this candidate?'))return;db.candidates=db.candidates.filter(c=>c.id!==id);save();renderCandidates();renderSubsOptions();renderScCandOptions();renderHome();}
+const stageColor={'New':'background:#e9edf6;color:#16264d','Assessed':'background:#e7eefc;color:#3358b8','Resume ready':'background:#fff0db;color:#b5740b','Interview ready':'background:#ffe6cc;color:#c2620a','Submitted to client':'background:#dce9ff;color:#1f4fb0','Placed':'background:#d9f3e2;color:#177a42'};
+function renderCandidates(){
+  const tb=document.querySelector('#candTable tbody');tb.innerHTML='';
+  document.getElementById('candEmpty').style.display=db.candidates.length?'none':'block';
+  db.candidates.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(c.name)}</b>${c.notes?'<br><span class="small">'+esc(c.notes)+'</span>':''}</td>
+      <td>${esc(c.role)}<br><span class="small">${esc(c.type)} ${c.exp?'· '+esc(c.exp):''}${c.source?' · via '+esc(c.source):''}</span></td>
+      <td>${esc(c.type)}</td><td>${esc(c.loc)||'<span class="small">—</span>'}</td>
+      <td>${esc(c.comm)}</td>
+      <td><span class="pill" style="${stageColor[c.stage]||''}">${esc(c.stage)}</span></td>
+      <td class="row-actions"><button class="btn sm" onclick="pitchCand(${c.id})">Pitch</button><button class="btn sm" style="background:#25d366" onclick="sendProfile(${c.id})">Profile</button>
+      <button class="btn ghost sm" onclick="editCandidate(${c.id})">Edit</button>
+      <button class="btn danger sm" onclick="delCandidate(${c.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+function pitchCand(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  const exp=c.exp?c.exp+' ':'';
+  const loc=c.loc?', open to '+c.loc:'';
+  const msg=`Hi [name], I run a recruitment desk at SVS Consultancy. I have a ${c.role||'candidate'}${exp?' ('+c.exp+')':''}, available now${loc}. If you have a matching opening I can share the profile today. Are you hiring for this right now?`;
+  navigator.clipboard.writeText(msg).catch(()=>{});
+  waSend(msg);
+}
+/* send a client the full profile of ONE candidate (after they've said yes) */
+function sendProfile(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  let t='Candidate profile — via SVS Consultancy\n\n';
+  t+='Name: '+(c.name||'')+'\n';
+  if(c.role)t+='Role: '+c.role+'\n';
+  if(c.exp)t+='Experience: '+c.exp+'\n';
+  if(c.loc)t+='Location: '+c.loc+'\n';
+  if(c.comm&&c.comm!=='Not yet tested')t+='Communication: '+c.comm+'\n';
+  if(c.notes)t+='Notes: '+c.notes+'\n';
+  t+='\nFull CV available on request. Submitted subject to our agreed terms. — SVS Consultancy';
+  navigator.clipboard.writeText(t).catch(()=>{});
+  waSend(t);
+}
+
+/* ---------- clients ---------- */
+let editClient=null;
+function saveClient(){
+  const co=val('cl_company');if(!co){toast('Company required');return;}
+  const obj={id:editClient||nid(),company:co,person:val('cl_person'),role:val('cl_role'),type:val('cl_type'),
+    source:val('cl_source'),req:val('cl_req'),stage:val('cl_stage'),terms:val('cl_terms'),contact:val('cl_contact'),next:val('cl_next'),notes:val('cl_notes')};
+  if(editClient){const i=db.clients.findIndex(c=>c.id===editClient);db.clients[i]=obj;}
+  else db.clients.push(obj);
+  save();clearClientForm();renderClients();renderSubsOptions();renderHome();toast('Client saved');
+}
+function editClientF(id){const c=db.clients.find(x=>x.id===id);editClient=id;
+  set('cl_company',c.company);set('cl_person',c.person);set('cl_role',c.role);set('cl_type',c.type);
+  set('cl_source',c.source);set('cl_req',c.req);set('cl_stage',c.stage);set('cl_terms',c.terms);set('cl_contact',c.contact);set('cl_next',c.next||'');set('cl_notes',c.notes);
+  document.getElementById('cl_editing').textContent='Editing: '+c.company;window.scrollTo(0,0);}
+function clearClientForm(){editClient=null;['cl_company','cl_person','cl_req','cl_contact','cl_next','cl_notes'].forEach(i=>set(i,''));
+  set('cl_role','Talent Acquisition / Recruiter');set('cl_type','BPO');set('cl_source','Warm intro');set('cl_stage','To contact');set('cl_terms','No');
+  document.getElementById('cl_editing').textContent='';}
+function delClient(id){if(!confirm('Delete this client?'))return;db.clients=db.clients.filter(c=>c.id!==id);save();renderClients();renderSubsOptions();renderHome();}
+const clStageColor={'To contact':'background:#e9edf6;color:#16264d','Contacted':'background:#e7eefc;color:#3358b8','Replied':'background:#fff0db;color:#b5740b','Terms agreed':'background:#d9f3e2;color:#177a42','Has live req':'background:#ffe6cc;color:#c2620a','Placed with them':'background:#d9f3e2;color:#177a42','Dead':'background:#f0e3e3;color:#a33'};
+function renderClients(){
+  const tb=document.querySelector('#clientTable tbody');tb.innerHTML='';
+  document.getElementById('clientEmpty').style.display=db.clients.length?'none':'block';
+  db.clients.forEach(c=>{
+    const termsPill=c.terms.startsWith('Yes')?'<span class="pill" style="background:#d9f3e2;color:#177a42">Yes</span>':'<span class="pill" style="background:#fdeaea;color:#c33">No</span>';
+    let followBadge='';
+    if(c.next&&!['Dead','Placed with them'].includes(c.stage)){
+      const od=c.next<today();
+      followBadge=`<br><span class="pill" style="background:${od?'#fdeaea':'#fff0db'};color:${od?'#c33':'#b5740b'}">${od?'follow up overdue':'follow up'} ${esc(c.next)}</span>`;
+    }
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(c.company)}</b><br><span class="small">${esc(c.type)} · ${esc(c.source)}</span>${followBadge}</td>
+      <td>${esc(c.person)||'<span class="small">—</span>'}<br><span class="small">${esc(c.role)}</span>${c.contact?'<br><span class="small">'+esc(c.contact)+'</span>':''}</td>
+      <td>${esc(c.type)}</td>
+      <td>${esc(c.req)||'<span class="small">—</span>'}${c.notes?'<br><span class="small">'+esc(c.notes)+'</span>':''}</td>
+      <td>${termsPill}</td>
+      <td><span class="pill" style="${clStageColor[c.stage]||''}">${esc(c.stage)}</span></td>
+      <td class="row-actions"><button class="btn ghost sm" onclick="editClientF(${c.id})">Edit</button>
+      <button class="btn danger sm" onclick="delClient(${c.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- submissions ---------- */
+function renderSubsOptions(){
+  const sc=document.getElementById('s_cand'),scl=document.getElementById('s_client');
+  sc.innerHTML=db.candidates.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.role)}</option>`).join('')||'<option>Add candidates first</option>';
+  scl.innerHTML=db.clients.map(c=>`<option value="${c.id}">${esc(c.company)}</option>`).join('')||'<option>Add clients first</option>';
+}
+function saveSubmission(){
+  if(!db.candidates.length||!db.clients.length){toast('Need a candidate and a client first');return;}
+  const cand=db.candidates.find(c=>c.id==val('s_cand'));
+  const client=db.clients.find(c=>c.id==val('s_client'));
+  const obj={id:nid(),candId:cand.id,candName:cand.name,clientId:client.id,clientName:client.company,
+    date:val('s_date')||today(),role:val('s_role')||cand.role,terms:val('s_terms'),status:val('s_status'),proof:val('s_proof')};
+  db.submissions.unshift(obj);save();renderSubmissions();toast('Submission logged — that date is your proof');
+  set('s_role','');set('s_proof','');
+}
+function delSub(id){if(!confirm('Delete this log entry? You lose the dated proof.'))return;db.submissions=db.submissions.filter(s=>s.id!==id);save();renderSubmissions();}
+function cycleSubStatus(id){
+  const order=['Submitted','Shortlisted','Interviewing','Offer','Joined','Rejected','Backed out'];
+  const s=db.submissions.find(x=>x.id===id);const i=order.indexOf(s.status);s.status=order[(i+1)%order.length];save();renderSubmissions();renderHome();
+}
+const subColor={'Submitted':'background:#dce9ff;color:#1f4fb0','Shortlisted':'background:#e7eefc;color:#3358b8','Interviewing':'background:#fff0db;color:#b5740b','Offer':'background:#ffe6cc;color:#c2620a','Joined':'background:#d9f3e2;color:#177a42','Rejected':'background:#f0e3e3;color:#a33','Backed out':'background:#f0e3e3;color:#a33'};
+function renderSubmissions(){
+  const tb=document.querySelector('#subTable tbody');tb.innerHTML='';
+  document.getElementById('subEmpty').style.display=db.submissions.length?'none':'block';
+  db.submissions.forEach(s=>{
+    const termFlag=s.terms.startsWith('Yes')?'<span class="pill" style="background:#d9f3e2;color:#177a42">OK</span>':'<span class="pill" style="background:#fdeaea;color:#c33">RISK</span>';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(s.date)}</b></td><td>${esc(s.candName)}</td><td>${esc(s.clientName)}</td>
+      <td>${esc(s.role)}${s.proof?'<br><span class="small">'+esc(s.proof)+'</span>':''}</td>
+      <td>${termFlag}</td>
+      <td><span class="pill" style="${subColor[s.status]||''};cursor:pointer" onclick="cycleSubStatus(${s.id})" title="click to advance">${esc(s.status)}</span></td>
+      <td><button class="btn danger sm" onclick="delSub(${s.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- templates ---------- */
+const templates=[
+  {t:'Warm contact (people who know you) — send this most',body:`hey, hope you're doing well. quick thing — i'm running a placement desk now under SVS Consultancy. if you or anyone you know is looking for a job, send me their CV and i'll try to place them. also if you happen to know anyone in HR or who hires at your company, that'd help me a lot. thanks!`,note:'Change a word or two per person so it reads personal, not broadcast. This channel converts best.'},
+  {t:'Candidate post — groups / channels (no money mentioned)',body:`SVS Consultancy — hiring & placement support
+
+We work with companies to fill open positions and we're taking in candidate profiles right now.
+
+Send us your CV if you are:
+✅ A fresher
+✅ Returning after a career break
+✅ Looking for a career change
+✅ A woman planning to restart her career
+✅ Looking for BPO or MNC openings
+
+We help you get your resume and interview ready, then put you forward for roles that fit.
+
+Send your CV to: [email]
+Or message us: [@handle]`,note:'Cleanest for cold forwarding. Discuss any training fee one-on-one in the DM once they reply.'},
+  {t:'Candidate post — training stated openly',body:`SVS Consultancy — hiring & placement support
+
+We work with companies to fill open positions and we help candidates get ready for them.
+
+Send us your CV if you're job hunting — fresher, restarting after a break, switching fields, or preparing for BPO/MNC interviews.
+
+What we offer:
+- Profile shortlisting for open roles — free
+- Resume building, interview prep, communication & skill training — paid, we'll share details when you reach out
+
+Send your CV to: [email]
+Or message us: [@handle]`,note:'Use when you want zero surprises about money. More honest up front.'},
+  {t:'Employer / HR — lead with the candidate (the money message)',body:`Hi [name], I run a recruitment desk at SVS Consultancy. I have a PL/SQL developer — 3 years, available immediately, open to Bangalore or WFH. If you have an opening that fits I can share the profile today. Are you hiring for this skill right now?`,note:'Never open with your services. Open with a specific candidate + one clear question. Swap in whichever candidate fits their likely need.'},
+  {t:'Terms confirmation — send before any profile',body:`Hi [name], confirming our terms before I share the profile:
+- Fee: 8.33% of annual CTC, payable on the candidate's joining date
+- Replacement: free replacement if the candidate leaves within 90 days
+- Invoice: within 30 days of joining
+
+Reply "confirmed" and I'll send the profile across.`,note:'Their "confirmed" reply is your legal protection against backdoor hiring and non-payment. Never skip this.'},
+  {t:'Profile submission header — paste at top of every CV you send',body:`Submitted by SVS Consultancy on [date], subject to our agreed terms of business. Candidate: [name], [role].`,note:'This single line + your dated Submission Log entry is what wins a fee dispute.'}
+];
+function renderTemplates(){
+  const w=document.getElementById('tmplWrap');w.innerHTML='';
+  templates.forEach((t,i)=>{
+    const d=document.createElement('div');d.style.marginBottom='18px';
+    d.innerHTML=`<div class="copybar"><b>${esc(t.t)}</b><span class="row-actions"><button class="btn sm ghost" onclick="copyT(${i})">Copy</button><button class="btn sm" style="background:#25d366" onclick="waT(${i})">WhatsApp</button></span></div>
+      <div class="tmpl" id="tmpl${i}">${esc(t.body)}</div>
+      <div class="small" style="margin-bottom:14px">💡 ${esc(t.note)}</div>`;
+    w.appendChild(d);
+  });
+}
+function copyT(i){navigator.clipboard.writeText(templates[i].body).then(()=>toast('Copied — fill the [brackets] before sending'));}
+function waT(i){waSend(templates[i].body);}
+/* open WhatsApp with text prefilled — works on phone app + web */
+function waSend(text){
+  const u='https://wa.me/?text='+encodeURIComponent(text);
+  window.open(u,'_blank','noopener');
+  toast('Opening WhatsApp — pick the contact');
+}
+
+/* ---------- fees ---------- */
+function calcFee(){
+  const ctc=+document.getElementById('f_ctc').value||0,pct=+document.getElementById('f_pct').value||0;
+  document.getElementById('f_out').textContent='₹'+Math.round(ctc*pct/100).toLocaleString('en-IN');
+  const flat=+document.getElementById('f_flat').value||0,cnt=+document.getElementById('f_count').value||0;
+  document.getElementById('f_flatout').textContent='₹'+(flat*cnt).toLocaleString('en-IN');
+  const goal=+document.getElementById('f_goal').value||0,avg=+document.getElementById('f_avg').value||0;
+  if(avg){db.avgFee=avg;save();}
+  const tg=document.getElementById('f_target');
+  if(goal&&avg){const n=Math.ceil(goal/avg);tg.innerHTML=`To hit <b>₹${goal.toLocaleString('en-IN')}</b>/month at <b>₹${avg.toLocaleString('en-IN')}</b> per placement, you need <b>${n} placement${n>1?'s':''}</b> a month — about <b>${(n/4).toFixed(1)} a week</b>. Work backwards: that's roughly ${n*3}–${n*5} live profiles in play, which means ${Math.max(3,n*2)}+ active client conversations.`;}
+  else tg.textContent='Enter a goal and average fee to see how many placements you need.';
+}
+
+/* ---------- plan ---------- */
+const planData=[
+  {h:'Week 1 — Foundation',items:[
+    'Pick ONE name and use it everywhere (logo says SVS Consultancy — match it)',
+    'Change the company Gmail password (don\'t share passwords in group chats)',
+    'Set up the company Telegram handle + decide the CV destination email',
+    'List every person you, Sanju & Shashank know in HR or who runs a company',
+    'Message your 5 warmest contacts personally (use the Warm template)',
+    'Finish assessing your first candidates\' communication',
+    'Get your most placeable candidate\'s resume interview-ready (IT/skilled roles pay higher fees)'
+  ]},
+  {h:'Weeks 2–3 — First client',items:[
+    'Pitch your strongest candidate to 3 warm HR/hiring-manager contacts (lead with the candidate)',
+    'Find 5 live job posts on Naukri/LinkedIn matching your candidates',
+    'Reach the TA/recruiter behind each post (not HR generalists)',
+    'For any interested company: send the Terms Confirmation BEFORE any profile',
+    'Get one company to reply "confirmed" on terms in writing',
+    'Add every contact to Clients & Outreach as you go'
+  ]},
+  {h:'Weeks 4–6 — First submission',items:[
+    'Submit your first candidate to a company with agreed terms',
+    'Log it in the Submission Log the moment you send it (dated proof)',
+    'Put the SVS submission header on the profile PDF',
+    'Build a bank of 8–10 decent candidates so you can answer "who\'ve you got?" same-day',
+    'Follow up every submitted profile within 3 days'
+  ]},
+  {h:'Weeks 7–12 — Make it real',items:[
+    'Talk to a CA — register as proprietorship/partnership so you can raise an invoice',
+    'Write down the split between you, Sanju & Shashank (who does what, who gets what)',
+    'Land your first placement and raise your first invoice',
+    'Decide if/how you charge for training — keep it separate from any job promise',
+    'Back up this console weekly (Backup tab)',
+    'Build the LinkedIn company page once you have real placements to point to'
+  ]}
+];
+function renderPlan(){
+  const w=document.getElementById('planWrap');w.innerHTML='';
+  let total=0,done=0;
+  planData.forEach((sec,si)=>{
+    const card=document.createElement('div');card.className='card';
+    let html=`<h3>${esc(sec.h)}</h3>`;
+    sec.items.forEach((it,ii)=>{
+      const k='p_'+si+'_'+ii;total++;const ck=db.plan[k];if(ck)done++;
+      html+=`<div class="check"><input type="checkbox" id="${k}" ${ck?'checked':''} onchange="togglePlan('${k}')">
+        <label for="${k}" class="${ck?'done':''}">${esc(it)}</label></div>`;
+    });
+    card.innerHTML=html;w.appendChild(card);
+  });
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('planBar').style.width=pct+'%';
+  document.getElementById('planPct').textContent=pct+'% ('+done+'/'+total+')';
+}
+function togglePlan(k){db.plan[k]=document.getElementById(k).checked;save();renderPlan();}
+
+/* ---------- scorecard ---------- */
+const scDims=[
+  {k:'comm',label:'Communication',hint:'Clear, easy to understand, right pace'},
+  {k:'tech',label:'Skill / role knowledge',hint:'Knows their actual job'},
+  {k:'conf',label:'Confidence',hint:'Calm, not shaky or over-nervous'},
+  {k:'prof',label:'Professionalism',hint:'On time, polite, took it seriously'},
+  {k:'fit',label:'Job readiness',hint:'Could you put them in front of a client?'}
+];
+function renderScSliders(){
+  const w=document.getElementById('sc_sliders');w.innerHTML='';
+  scDims.forEach(d=>{
+    const row=document.createElement('div');row.style.margin='14px 0';
+    row.innerHTML=`<div style="display:flex;justify-content:space-between"><label style="margin:0">${d.label}</label>
+      <b id="scv_${d.k}" style="color:var(--orange)">3</b></div>
+      <input type="range" min="1" max="5" value="3" id="sc_${d.k}" oninput="calcScore()" style="width:100%;accent-color:#1f3566">
+      <div class="hint">${d.hint}</div>`;
+    w.appendChild(row);
+  });
+}
+function calcScore(){
+  let sum=0;scDims.forEach(d=>{const v=+document.getElementById('sc_'+d.k).value;sum+=v;document.getElementById('scv_'+d.k).textContent=v;});
+  const pct=Math.round(sum/(scDims.length*5)*100);
+  document.getElementById('sc_score').textContent=pct+'%';
+  document.getElementById('sc_bar').style.width=pct+'%';
+  let v,a,col;
+  if(pct>=80){v='Interview ready';col='#177a42';a='Strong. Get their resume polished and start putting them in front of clients.';}
+  else if(pct>=60){v='Nearly there';col='#b5740b';a='Close. One or two areas to tighten — a little coaching and they\'re submittable.';}
+  else if(pct>=40){v='Needs training';col='#c2620a';a='Not client-ready yet. Worth investing in communication/skill training before submitting.';}
+  else{v='Not ready';col='#c33';a='Hold off submitting. Significant gaps — be honest with them about what to work on.';}
+  const vd=document.getElementById('sc_verdict');vd.textContent=v;vd.style.color=col;
+  document.getElementById('sc_advice').textContent=a;
+  return {pct,v};
+}
+function resetScore(){renderScSliders();calcScore();set('sc_notes','');document.getElementById('sc_date').value=today();}
+function saveScore(){
+  const sel=document.getElementById('sc_cand');
+  if(!db.candidates.length){toast('Add a candidate first');return;}
+  const cand=db.candidates.find(c=>c.id==sel.value);if(!cand){toast('Pick a candidate');return;}
+  const r=calcScore();
+  const detail={};scDims.forEach(d=>detail[d.k]=+document.getElementById('sc_'+d.k).value);
+  db.scores.unshift({id:nid(),candId:cand.id,candName:cand.name,date:val('sc_date')||today(),pct:r.pct,verdict:r.v,detail,notes:val('sc_notes')});
+  // auto-advance stage based on score
+  if(r.pct>=80&&['New','Assessed'].includes(cand.stage))cand.stage='Interview ready';
+  else if(r.pct>=60&&cand.stage==='New')cand.stage='Assessed';
+  else if(cand.stage==='New')cand.stage='Assessed';
+  // reflect communication rating
+  const commV=detail.comm;cand.comm=commV>=4?'Strong':commV>=3?'Average':'Needs work';
+  save();renderScores();renderCandidates();renderHome();resetScore();toast('Scored '+r.pct+'% — saved to '+cand.name);
+}
+function renderScCandOptions(){
+  const sel=document.getElementById('sc_cand');
+  sel.innerHTML=db.candidates.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.role)}</option>`).join('')||'<option>Add candidates first</option>';
+}
+function delScore(id){if(!confirm('Delete this scorecard?'))return;db.scores=db.scores.filter(s=>s.id!==id);save();renderScores();}
+function renderScores(){
+  const tb=document.querySelector('#scoreTable tbody');tb.innerHTML='';
+  document.getElementById('scoreEmpty').style.display=db.scores.length?'none':'block';
+  db.scores.forEach(s=>{
+    const col=s.pct>=80?'#177a42':s.pct>=60?'#b5740b':s.pct>=40?'#c2620a':'#c33';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(s.date)}</b></td><td>${esc(s.candName)}</td>
+      <td><b style="color:${col}">${s.pct}%</b></td>
+      <td>${esc(s.verdict)}${s.notes?'<br><span class="small">'+esc(s.notes)+'</span>':''}</td>
+      <td><button class="btn danger sm" onclick="delScore(${s.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ---------- install (PWA) ---------- */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;
+  document.getElementById('installNow').style.display='block';});
+document.addEventListener('DOMContentLoaded',()=>{
+  const b=document.getElementById('installBtn');
+  if(b)b.onclick=async()=>{if(!deferredPrompt){toast('Use the manual steps below');return;}deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('installNow').style.display='none';};
+});
+
+/* ---------- find jobs (live searches) ---------- */
+const jobBoards=[
+  {name:'Naukri',color:'#4a6cf7',url:(r,l)=>{
+     const slug=(r.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'jobs');
+     const lslug=l.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+     return lslug?`https://www.naukri.com/${slug}-jobs-in-${lslug}`:`https://www.naukri.com/${slug}-jobs`;}},
+  {name:'LinkedIn',color:'#0a66c2',url:(r,l)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(r)}&location=${encodeURIComponent(l||'India')}`},
+  {name:'Indeed',color:'#2557a7',url:(r,l)=>`https://in.indeed.com/jobs?q=${encodeURIComponent(r)}&l=${encodeURIComponent(l)}`},
+  {name:'Foundit',color:'#7b2ff7',url:(r,l)=>`https://www.foundit.in/srp/results?query=${encodeURIComponent(r)}&locations=${encodeURIComponent(l)}`},
+  {name:'Google Jobs',color:'#137333',url:(r,l)=>`https://www.google.com/search?q=${encodeURIComponent(r+' jobs '+(l?'in '+l:'')) }&ibp=htl;jobs`}
+];
+const jobSources=[
+  {name:'Naukri.com',url:'https://www.naukri.com/',note:'India\'s biggest board. Best for IT + bulk roles.'},
+  {name:'LinkedIn Jobs',url:'https://www.linkedin.com/jobs/',note:'Find the recruiter behind each post.'},
+  {name:'Indeed India',url:'https://in.indeed.com/',note:'Wide net, all sectors.'},
+  {name:'Foundit (ex-Monster)',url:'https://www.foundit.in/',note:'Good for experienced roles.'},
+  {name:'Hirist',url:'https://www.hirist.tech/',note:'IT / tech only.'},
+  {name:'Cutshort',url:'https://cutshort.io/',note:'Startups + tech.'},
+  {name:'apna',url:'https://apna.co/',note:'BPO, entry-level, non-IT, high volume.'}
+];
+function renderJobLinks(){
+  const r=val('j_role'),l=val('j_loc');
+  const w=document.getElementById('j_links');
+  if(!r){w.innerHTML='<p class="small">Type a role above, then search.</p>';return;}
+  w.innerHTML='<div class="small" style="margin-bottom:8px">Live openings for <b>'+esc(r)+'</b>'+(l?' in <b>'+esc(l)+'</b>':'')+' — opens in a new tab:</div>'+
+    '<div class="row-actions">'+jobBoards.map(b=>`<a class="btn sm" style="background:${b.color};text-decoration:none" href="${b.url(r,l)}" target="_blank" rel="noopener">${b.name} ↗</a>`).join('')+'</div>';
+}
+/* HR / recruiter searches — the people who own open roles */
+const hrBoards=[
+  {name:'LinkedIn — recruiters',color:'#0a66c2',url:(s,l)=>`https://www.linkedin.com/search/results/people/?keywords=${encodeURIComponent(('talent acquisition recruiter '+s+' '+l).trim())}`},
+  {name:'LinkedIn — companies hiring',color:'#0a66c2',url:(s,l)=>`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(s)}&location=${encodeURIComponent(l||'India')}&f_TPR=r604800`},
+  {name:'Google — HR + email',color:'#137333',url:(s,l)=>`https://www.google.com/search?q=${encodeURIComponent('"talent acquisition" OR recruiter '+s+' '+l+' email')}`},
+  {name:'Naukri — recruiters',color:'#4a6cf7',url:(s,l)=>{const ls=l.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');return ls?`https://www.naukri.com/recruiter-jobs-in-${ls}`:'https://www.naukri.com/recruiter-jobs';}}
+];
+function renderHrLinks(){
+  const s=val('h_skill'),l=val('h_loc'),w=document.getElementById('h_links');
+  w.innerHTML='<div class="small" style="margin-bottom:8px">HR / recruiters'+(s?' hiring <b>'+esc(s)+'</b>':'')+(l?' in <b>'+esc(l)+'</b>':'')+' — opens in a new tab:</div>'+
+    '<div class="row-actions">'+hrBoards.map(b=>`<a class="btn sm" style="background:${b.color};text-decoration:none" href="${b.url(s,l)}" target="_blank" rel="noopener">${b.name} ↗</a>`).join('')+'</div>'+
+    '<div class="small" style="margin-top:8px">Found someone? Use the <b>Pitch</b> button on your candidate (Candidates tab) and send it to them.</div>';
+}
+function quickLead(){
+  const co=val('lead_co');if(!co){toast('Enter a company name');return;}
+  const req=val('lead_req');
+  db.clients.push({id:nid(),company:co,person:'',role:'Talent Acquisition / Recruiter',type:'IT services / vendor',
+    source:'Naukri job post',req:req,stage:'To contact',terms:'No',contact:'',next:'',notes:'Found hiring on the boards — reach their TA/recruiter.'});
+  // a hiring company IS a job opening — create it so it lands in the ATS
+  db.openings.push({id:nid(),title:req||'Open role',company:co,loc:'',count:'1',ctc:'',fee:'',prio:'Hot',status:'Open',terms:'No',notes:'Spotted hiring on the job boards. Confirm the req + terms with their recruiter.'});
+  save();set('lead_co','');set('lead_req','');renderClients();renderOpenings();renderHome();renderSubsOptions();
+  toast('Added as a client AND an open job — go match a candidate');
+}
+function renderJobCandBtns(){
+  const w=document.getElementById('j_candBtns');
+  if(!db.candidates.length){w.innerHTML='<p class="small">Add candidates first, then search for each in one tap.</p>';return;}
+  w.innerHTML=db.candidates.map(c=>`<button class="btn ghost sm" style="margin:3px" onclick="jobForCand(${c.id})">${esc(c.name)} — ${esc(c.role||'role?')}</button>`).join('');
+}
+function jobForCand(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  set('j_role',c.role||'');set('j_loc',c.loc||'');
+  set('h_skill',c.role||'');set('h_loc',c.loc||'');
+  renderJobLinks();renderHrLinks();
+  document.getElementById('h_links').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function renderJobSources(){
+  document.getElementById('j_sources').innerHTML=jobSources.map(s=>
+    `<div style="padding:8px 0;border-bottom:1px solid var(--line)"><a href="${s.url}" target="_blank" rel="noopener"><b>${s.name} ↗</b></a><br><span class="small">${esc(s.note)}</span></div>`).join('');
+}
+
+/* ---------- openings (the ATS core) ---------- */
+const MATCH_STAGES=['Shortlisted','Submitted to client','Interviewing','Offer','Joined','Rejected','Backed out'];
+const matchColor={'Shortlisted':'background:#e7eefc;color:#3358b8','Submitted to client':'background:#dce9ff;color:#1f4fb0','Interviewing':'background:#fff0db;color:#b5740b','Offer':'background:#ffe6cc;color:#c2620a','Joined':'background:#d9f3e2;color:#177a42','Rejected':'background:#f0e3e3;color:#a33','Backed out':'background:#f0e3e3;color:#a33'};
+let editOpening=null;
+let curOpening=null;
+function showView(id){
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  const nb=document.querySelector('nav button[data-v="'+id+'"]');if(nb)nb.classList.add('active');
+  document.getElementById(id).classList.add('active');window.scrollTo(0,0);
+}
+function saveOpening(){
+  const title=val('o_title');if(!title){toast('Role title required');return;}
+  const obj={id:editOpening||nid(),title,company:val('o_company'),loc:val('o_loc'),
+    count:val('o_count')||'1',ctc:val('o_ctc'),fee:val('o_fee'),prio:val('o_prio'),status:val('o_status'),terms:val('o_terms'),notes:val('o_notes')};
+  if(editOpening){const i=db.openings.findIndex(o=>o.id===editOpening);db.openings[i]=obj;}
+  else db.openings.push(obj);
+  save();clearOpeningForm();renderOpenings();renderHome();toast('Opening saved');
+}
+function editOpeningF(id){const o=db.openings.find(x=>x.id===id);editOpening=id;
+  set('o_title',o.title);set('o_company',o.company);set('o_loc',o.loc);set('o_count',o.count);set('o_ctc',o.ctc);
+  set('o_fee',o.fee);set('o_prio',o.prio);set('o_status',o.status);set('o_terms',o.terms);set('o_notes',o.notes);
+  document.getElementById('o_editing').textContent='Editing: '+o.title;showView('openings');window.scrollTo(0,0);}
+function clearOpeningForm(){editOpening=null;['o_title','o_company','o_loc','o_ctc','o_fee','o_notes'].forEach(i=>set(i,''));
+  set('o_count','1');set('o_prio','Normal');set('o_status','Open');set('o_terms','No');document.getElementById('o_editing').textContent='';}
+function delOpening(id){if(!confirm('Delete this opening and all its candidate matches?'))return;
+  db.openings=db.openings.filter(o=>o.id!==id);db.matches=db.matches.filter(m=>m.openingId!==id);
+  save();renderOpenings();renderHome();}
+function oPrioPill(o){
+  if(o.status==='Filled')return '<span class="pill" style="background:#d9f3e2;color:#177a42">Filled</span>';
+  if(o.status==='Closed / lost')return '<span class="pill" style="background:#e9edf6;color:#16264d">Closed</span>';
+  if(o.status==='On hold')return '<span class="pill" style="background:#fff0db;color:#b5740b">On hold</span>';
+  if(o.prio==='Hot')return '<span class="pill" style="background:#ffe6cc;color:#c2620a">Hot</span>';
+  return '<span class="pill" style="background:#d9f3e2;color:#177a42">Open</span>';
+}
+function renderOpenings(){
+  const w=document.getElementById('openingsList');
+  document.getElementById('openingsEmpty').style.display=db.openings.length?'none':'block';
+  // hot first, then open, then the rest
+  const rank=o=>o.status==='Open'&&o.prio==='Hot'?0:o.status==='Open'?1:o.status==='On hold'?2:3;
+  const sorted=[...db.openings].sort((a,b)=>rank(a)-rank(b));
+  w.innerHTML=sorted.map(o=>{
+    const ms=db.matches.filter(m=>m.openingId===o.id);
+    const joined=ms.filter(m=>m.stage==='Joined').length;
+    const active=ms.filter(m=>!['Rejected','Backed out'].includes(m.stage)).length;
+    return `<div class="card" style="margin:0 0 10px;cursor:pointer" onclick="openOpening(${o.id})">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div><b>${esc(o.title)}</b> ${oPrioPill(o)}<br>
+          <span class="small">${esc(o.company||'company?')}${o.loc?' · '+esc(o.loc):''}${o.ctc?' · '+esc(o.ctc):''} · ${esc(o.count)} pos${o.fee?' · fee '+esc(o.fee):''}</span></div>
+        <div style="text-align:right"><span class="pill" style="background:#eef2fb;color:#1f3566">${active} in play${joined?' · '+joined+' joined':''}</span></div>
+      </div></div>`;
+  }).join('');
+}
+function openOpening(id){
+  curOpening=id;const o=db.openings.find(x=>x.id===id);if(!o)return;
+  showView('openingDetail');
+  document.getElementById('od_head').innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div><h2 style="margin:0">${esc(o.title)} ${oPrioPill(o)}</h2>
+    <p class="small" style="margin:4px 0 0">${esc(o.company||'company?')}${o.loc?' · '+esc(o.loc):''}${o.ctc?' · '+esc(o.ctc):''} · ${esc(o.count)} position(s)${o.fee?' · fee '+esc(o.fee):''} · terms ${o.terms&&o.terms.startsWith('Yes')?'confirmed ✓':'not yet'}</p>
+    ${o.notes?'<p class="small" style="margin:8px 0 0">'+esc(o.notes)+'</p>':''}</div>
+    <div class="row-actions"><button class="btn sm" style="background:#25d366" onclick="shareJob(${o.id})">Share job</button><button class="btn sm" onclick="sendShortlist(${o.id})">Send shortlist</button><button class="btn ghost sm" onclick="editOpeningF(${o.id})">Edit</button><button class="btn danger sm" onclick="delOpening(${o.id})">Delete</button></div>
+  </div></div>`;
+  renderMatchCandOptions();renderSuggestions();renderMatches();
+}
+function renderMatchCandOptions(){
+  const sel=document.getElementById('od_cand');
+  const onJob=new Set(db.matches.filter(m=>m.openingId===curOpening).map(m=>m.candId));
+  const avail=db.candidates.filter(c=>!onJob.has(c.id));
+  sel.innerHTML=avail.length?avail.map(c=>`<option value="${c.id}">${esc(c.name)} — ${esc(c.role||'role?')}</option>`).join(''):'<option value="">All candidates already added (or none exist)</option>';
+}
+/* how well a candidate fits a job: role word overlap + location + readiness */
+function fitScore(cand,op){
+  let s=0;const words=t=>(t||'').toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>2);
+  const cw=words(cand.role),ow=words(op.title);
+  const overlap=cw.filter(w=>ow.includes(w)).length;
+  s+=overlap*40;                                            // role match is biggest signal
+  if(overlap&&cw.length&&ow.length&&overlap>=Math.min(cw.length,ow.length))s+=10; // strong role match
+  const cl=(cand.loc||'').toLowerCase(),ol=(op.loc||'').toLowerCase();
+  if(cl&&ol&&(cl.includes(ol.split('/')[0].trim())||ol.includes(cl.split('/')[0].trim())||cl.includes('remote')||ol.includes('remote')))s+=25;
+  if(['Interview ready','Resume ready'].includes(cand.stage))s+=20;
+  else if(cand.stage==='Assessed')s+=8;
+  if(cand.comm==='Strong')s+=10;else if(cand.comm==='Average')s+=4;
+  return s;
+}
+function renderSuggestions(){
+  const el=document.getElementById('od_suggest');if(!el)return;
+  const o=db.openings.find(x=>x.id===curOpening);if(!o)return;
+  const onJob=new Set(db.matches.filter(m=>m.openingId===curOpening).map(m=>m.candId));
+  const ranked=db.candidates.filter(c=>!onJob.has(c.id))
+    .map(c=>({c,s:fitScore(c,o)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,5);
+  if(!ranked.length){el.innerHTML='<p class="small">No strong matches among your current candidates. Add more, or match anyone manually above.</p>';return;}
+  el.innerHTML=ranked.map(({c,s})=>{
+    const pct=Math.min(100,s);
+    const tag=pct>=70?['Great fit','#177a42']:pct>=40?['Good fit','#b5740b']:['Possible','#3358b8'];
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)">
+      <div style="flex:1"><b>${esc(c.name)}</b> <span class="small">${esc(c.role||'')}${c.loc?' · '+esc(c.loc):''}</span>
+        <div class="barwrap" style="height:6px;margin:4px 0 0;max-width:180px"><div class="bar" style="width:${pct}%;background:${tag[1]}"></div></div></div>
+      <span class="pill" style="background:#eef2fb;color:${tag[1]}">${tag[0]}</span>
+      <button class="btn sm orange" onclick="addMatchCand(${c.id})">Add</button></div>`;
+  }).join('');
+}
+function addMatchCand(cid){
+  const c=db.candidates.find(x=>x.id===cid);if(!c)return;
+  db.matches.push({id:nid(),openingId:curOpening,candId:cid,stage:'Shortlisted',date:today()});
+  save();renderMatchCandOptions();renderMatches();renderSuggestions();renderOpenings();renderHome();toast('Added '+c.name);
+}
+/* share a job to candidate groups via WhatsApp — clean post, no internal notes */
+function shareJob(id){
+  const o=db.openings.find(x=>x.id===id);if(!o)return;
+  let t='SVS Consultancy — we are hiring\n\n';
+  t+='Role: '+(o.title||'')+'\n';
+  if(o.loc)t+='Location: '+o.loc+'\n';
+  if(o.ctc)t+='Salary: '+o.ctc+'\n';
+  if(o.count&&o.count!=='1')t+='Openings: '+o.count+'\n';
+  t+='\nInterested? Send your CV and we will put you forward. No charge to candidates.';
+  waSend(t);
+}
+/* send the client a clean shortlist of matched candidates for this job */
+function sendShortlist(id){
+  const o=db.openings.find(x=>x.id===id);if(!o)return;
+  const ms=db.matches.filter(m=>m.openingId===id&&!['Rejected','Backed out'].includes(m.stage));
+  if(!ms.length){toast('No candidates matched to this job yet');return;}
+  let t='Hi, sharing profiles for '+(o.title||'the role')+(o.loc?' ('+o.loc+')':'')+':\n\n';
+  ms.forEach((m,i)=>{
+    const c=db.candidates.find(x=>x.id===m.candId);if(!c)return;
+    t+=(i+1)+'. '+(c.name||'')+(c.exp?' — '+c.exp:'')+(c.loc?' — '+c.loc:'')+'\n';
+    if(c.role)t+='   '+c.role+'\n';
+  });
+  t+='\nCan share full CVs on your confirmation. — SVS Consultancy';
+  navigator.clipboard.writeText(t).catch(()=>{});
+  waSend(t);
+}
+function addMatch(){
+  const sel=document.getElementById('od_cand');const cid=+sel.value;
+  if(!cid){toast('No candidate to add');return;}
+  const c=db.candidates.find(x=>x.id===cid);if(!c)return;
+  db.matches.push({id:nid(),openingId:curOpening,candId:cid,stage:'Shortlisted',date:today()});
+  save();renderMatchCandOptions();renderMatches();renderOpenings();renderHome();toast('Added '+c.name+' to this job');
+}
+function moveMatch(id,dir){
+  const m=db.matches.find(x=>x.id===id);if(!m)return;
+  const i=MATCH_STAGES.indexOf(m.stage);const ni=Math.max(0,Math.min(MATCH_STAGES.length-1,i+dir));
+  m.stage=MATCH_STAGES[ni];
+  syncCandidateStage(m.candId);
+  save();renderMatches();renderOpenings();renderHome();renderCandidates();renderBoard();
+}
+/* derive a candidate's stage from ALL their matches, so it never goes stale.
+   placed if any match joined; else the furthest-along live match; else leave as-is. */
+function syncCandidateStage(candId){
+  const c=db.candidates.find(x=>x.id===candId);if(!c)return;
+  const ms=db.matches.filter(m=>m.candId===candId);
+  if(ms.some(m=>m.stage==='Joined')){c.stage='Placed';return;}
+  const live=ms.filter(m=>['Submitted to client','Interviewing','Offer'].includes(m.stage));
+  if(live.length){if(c.stage!=='Placed')c.stage='Submitted to client';return;}
+  // no live matches: if they were auto-marked Placed/Submitted but nothing supports it now, step back
+  if(c.stage==='Placed'&&!ms.some(m=>m.stage==='Joined'))c.stage='Interview ready';
+  else if(c.stage==='Submitted to client'&&!live.length)c.stage='Interview ready';
+}
+function delMatch(id){if(!confirm('Remove this candidate from the job?'))return;const m=db.matches.find(x=>x.id===id);const cid=m&&m.candId;db.matches=db.matches.filter(m=>m.id!==id);if(cid!=null)syncCandidateStage(cid);save();renderMatchCandOptions();renderMatches();renderOpenings();renderHome();renderCandidates();renderBoard();}
+function renderMatches(){
+  const tb=document.querySelector('#od_matches tbody');tb.innerHTML='';
+  const ms=db.matches.filter(m=>m.openingId===curOpening);
+  document.getElementById('od_matchEmpty').style.display=ms.length?'none':'block';
+  ms.forEach(m=>{
+    const c=db.candidates.find(x=>x.id===m.candId);const nm=c?c.name:'(deleted candidate)';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><b>${esc(nm)}</b>${c&&c.role?'<br><span class="small">'+esc(c.role)+'</span>':''}</td>
+      <td><span class="pill" style="${matchColor[m.stage]||''}">${esc(m.stage)}</span></td>
+      <td><input type="datetime-local" value="${m.interview||''}" onchange="setInterview(${m.id},this.value)" style="font-size:12px;padding:5px"></td>
+      <td class="row-actions"><button class="btn ghost sm" onclick="moveMatch(${m.id},-1)">◀</button><button class="btn sm" onclick="moveMatch(${m.id},1)">▶</button></td>
+      <td><button class="btn danger sm" onclick="delMatch(${m.id})">Del</button></td>`;
+    tb.appendChild(tr);
+  });
+}
+/* HR coordination: schedule an interview on a match. auto-bumps stage to Interviewing. */
+function setInterview(id,val){
+  const m=db.matches.find(x=>x.id===id);if(!m)return;
+  m.interview=val||'';
+  if(val&&MATCH_STAGES.indexOf(m.stage)<MATCH_STAGES.indexOf('Interviewing')){m.stage='Interviewing';syncCandidateStage(m.candId);}
+  save();renderMatches();renderHome();renderOpenings();renderBoard();
+  toast(val?'Interview scheduled':'Interview cleared');
+}
+const BOARD_COLS=['Shortlisted','Submitted to client','Interviewing','Offer','Joined'];
+function renderBoardFilter(){
+  const sel=document.getElementById('b_filter');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">All jobs</option>'+db.openings.map(o=>`<option value="${o.id}">${esc(o.title)}${o.company?' — '+esc(o.company):''}</option>`).join('');
+  sel.value=cur;
+}
+function renderBoard(){
+  const wrap=document.getElementById('boardCols');if(!wrap)return;
+  renderBoardFilter();
+  const filt=document.getElementById('b_filter').value;
+  let ms=db.matches.filter(m=>!['Rejected','Backed out'].includes(m.stage));
+  if(filt)ms=ms.filter(m=>String(m.openingId)===filt);
+  document.getElementById('boardEmpty').style.display=ms.length?'none':'block';
+  document.getElementById('boardCols').style.display=ms.length?'flex':'none';
+  const inFlight=ms.filter(m=>m.stage!=='Joined').length;
+  const joined=ms.filter(m=>m.stage==='Joined').length;
+  document.getElementById('b_summary').innerHTML=`<b>${inFlight}</b> in play · <b style="color:var(--green)">${joined}</b> joined`;
+  wrap.innerHTML=BOARD_COLS.map(stage=>{
+    const inCol=ms.filter(m=>m.stage===stage);
+    const cards=inCol.map(m=>{
+      const c=db.candidates.find(x=>x.id===m.candId);const nm=c?c.name:'(removed)';
+      const o=db.openings.find(x=>x.id===m.openingId);const job=o?o.title:'(job removed)';
+      const i=MATCH_STAGES.indexOf(m.stage);
+      const canL=i>0, canR=i<BOARD_COLS.length-1; // don't push past Joined on the board
+      return `<div class="pcard"><b>${esc(nm)}</b><br><span class="small">${esc(job)}${o&&o.company?' · '+esc(o.company):''}</span>
+        <div class="mv">
+          <button onclick="moveMatch(${m.id},-1)" ${canL?'':'disabled style=opacity:.3'}>◀</button>
+          <button onclick="moveMatch(${m.id},1)" ${canR?'':'disabled style=opacity:.3'}>▶</button>
+        </div></div>`;
+    }).join('');
+    return `<div class="col"><h4>${stage.replace(' to client','')}<span>${inCol.length}</span></h4>${cards||'<p class="small" style="text-align:center;padding:8px 0">—</p>'}</div>`;
+  }).join('');
+}
+
+/* ---------- team ---------- */
+const LANES=['Client side','Candidate side','Coordination','Founder','Recruiter','Support'];
+let editTeamId=null;
+function renderTeam(){
+  const w=document.getElementById('teamCards');if(!w)return;
+  w.innerHTML=db.team.map(t=>{
+    if(editTeamId===t.id){
+      return `<div class="card">
+        <div class="grid g2">
+          <div><label>Name</label><input id="tm_name_${t.id}" value="${esc(t.name)}"></div>
+          <div><label>Lane / role in SVS</label><select id="tm_lane_${t.id}">${LANES.map(l=>`<option ${l===t.lane?'selected':''}>${l}</option>`).join('')}</select></div>
+          <div><label>Title (optional)</label><input id="tm_title_${t.id}" value="${esc(t.title||'')}" placeholder="e.g. Co-founder"></div>
+          <div><label>Contact (optional)</label><input id="tm_contact_${t.id}" value="${esc(t.contact||'')}" placeholder="phone / email"></div>
+        </div>
+        <label>Skills / what you're good at</label><input id="tm_skills_${t.id}" value="${esc(t.skills||'')}" placeholder="e.g. sourcing, IT screening, client calls">
+        <label>Short bio</label><textarea id="tm_bio_${t.id}" placeholder="A line or two, in your own words.">${esc(t.bio||'')}</textarea>
+        <div class="topbtns" style="margin-top:12px">
+          <button class="btn orange" onclick="saveTeam('${t.id}')">Save</button>
+          <button class="btn ghost" onclick="editTeamId=null;renderTeam()">Cancel</button>
+          <button class="btn danger" onclick="delTeam('${t.id}')">Remove</button>
+        </div>
+      </div>`;
+    }
+    const laneColor={'Client side':'#1f4fb0','Candidate side':'#3358b8','Coordination':'#b5740b','Founder':'#177a42','Recruiter':'#c2620a','Support':'#6b7689'}[t.lane]||'#1f3566';
+    const initials=(t.name||'?').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="card" style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:0 0 52px;height:52px;border-radius:50%;background:${laneColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">${esc(initials)}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div><b style="font-size:16px">${esc(t.name)}</b> <span class="pill" style="background:#eef2fb;color:${laneColor}">${esc(t.lane)}</span>${t.title?'<br><span class="small">'+esc(t.title)+'</span>':''}</div>
+          <button class="btn ghost sm" onclick="editTeamId='${t.id}';renderTeam()">Edit</button>
+        </div>
+        ${t.skills?'<p class="small" style="margin:8px 0 2px"><b>Skills:</b> '+esc(t.skills)+'</p>':''}
+        ${t.bio?'<p class="small" style="margin:2px 0">'+esc(t.bio)+'</p>':''}
+        ${t.contact?'<p class="small" style="margin:2px 0;color:var(--navy2)">'+esc(t.contact)+'</p>':''}
+        ${!t.skills&&!t.bio?'<p class="hint" style="margin:6px 0 0">Not filled in yet — tap Edit to add your details.</p>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function saveTeam(id){
+  const t=db.team.find(x=>x.id===id);if(!t)return;
+  t.name=(document.getElementById('tm_name_'+id).value||'').trim()||t.name;
+  t.lane=document.getElementById('tm_lane_'+id).value;
+  t.title=document.getElementById('tm_title_'+id).value.trim();
+  t.contact=document.getElementById('tm_contact_'+id).value.trim();
+  t.skills=document.getElementById('tm_skills_'+id).value.trim();
+  t.bio=document.getElementById('tm_bio_'+id).value.trim();
+  editTeamId=null;save();renderTeam();toast('Profile saved');
+}
+function delTeam(id){if(!confirm('Remove this team member?'))return;db.team=db.team.filter(x=>x.id!==id);editTeamId=null;save();renderTeam();}
+function addTeamMember(){const id='t'+nid();db.team.push({id,name:'New member',lane:'Support',title:'',skills:'',bio:'',contact:''});editTeamId=id;save();renderTeam();window.scrollTo(0,0);}
+
+/* ---------- global search ---------- */
+function renderSearch(){
+  const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
+  const el=document.getElementById('searchResults');
+  if(!q){el.innerHTML='';return;}
+  const hit=t=>(t||'').toLowerCase().includes(q);
+  const rows=[];
+  db.openings.filter(o=>hit(o.title)||hit(o.company)||hit(o.loc)).slice(0,6)
+    .forEach(o=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="openOpening(${o.id})"><span class="pill" style="background:#ffe6cc;color:#c2620a">Job</span> <b>${esc(o.title)}</b> <span class="small">${esc(o.company||'')} ${esc(o.loc||'')}</span></div>`));
+  db.candidates.filter(c=>hit(c.name)||hit(c.role)||hit(c.loc)).slice(0,6)
+    .forEach(c=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="showView('candidates')"><span class="pill" style="background:#e7eefc;color:#3358b8">Candidate</span> <b>${esc(c.name)}</b> <span class="small">${esc(c.role||'')} ${esc(c.loc||'')}</span></div>`));
+  db.clients.filter(c=>hit(c.company)||hit(c.person)).slice(0,6)
+    .forEach(c=>rows.push(`<div style="padding:7px 0;border-bottom:1px solid var(--line);cursor:pointer" onclick="showView('clients')"><span class="pill" style="background:#d9f3e2;color:#177a42">Company</span> <b>${esc(c.company)}</b> <span class="small">${esc(c.person||'')}</span></div>`));
+  el.innerHTML=rows.length?rows.join(''):'<p class="small">Nothing found for "'+esc(q)+'".</p>';
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  // openings are the center now
+  const openJobs=db.openings.filter(o=>['Open','On hold'].includes(o.status)).length;
+  // matches drive money + funnel
+  const inFlightStages=['Shortlisted','Submitted to client','Interviewing','Offer'];
+  const inFlight=db.matches.filter(m=>inFlightStages.includes(m.stage)).length;
+  const joined=db.matches.filter(m=>m.stage==='Joined').length;
+  const submittedM=db.matches.filter(m=>['Submitted to client','Interviewing','Offer','Joined'].includes(m.stage)).length;
+  const placed=joined;
+  const avgFee=db.avgFee||50000;
+  const pipeline=inFlight*avgFee, earned=joined*avgFee;
+  const inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+  document.getElementById('stats').innerHTML=`
+    <div class="stat accent"><div class="n">${openJobs}</div><div class="l">Open jobs</div></div>
+    <div class="stat"><div class="n">${db.candidates.length}</div><div class="l">Candidates</div></div>
+    <div class="stat"><div class="n">${db.clients.length}</div><div class="l">Companies</div></div>
+    <div class="stat accent"><div class="n">${placed}</div><div class="l">Placed</div></div>`;
+  const ms=document.getElementById('moneyStrip');
+  if(ms)ms.innerHTML=`
+    <div class="stat" style="border-color:#ffd9a8;background:#fff9f0"><div class="n" style="color:var(--orange)">${inr(pipeline)}</div><div class="l">In the pipeline${inFlight?' ('+inFlight+' live)':''}</div></div>
+    <div class="stat" style="border-color:#bce6cb;background:#f3fbf6"><div class="n" style="color:var(--green)">${inr(earned)}</div><div class="l">Earned (${joined} joined)</div></div>`;
+  // funnel — the ATS pipeline across all jobs
+  const fEl=document.getElementById('funnel');
+  if(fEl){
+    const shortlisted=db.matches.filter(m=>inFlightStages.includes(m.stage)).length;
+    const stages=[['Open jobs',openJobs,'#c2620a'],['Candidates',db.candidates.length,'#3358b8'],['Matched & in play',shortlisted,'#1f4fb0'],['Placed',placed,'#177a42']];
+    const max=Math.max(1,...stages.map(s=>s[1]));
+    fEl.innerHTML=stages.map(s=>`<div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${s[0]}</span><b>${s[1]}</b></div><div class="barwrap" style="height:14px"><div class="bar" style="width:${Math.round(s[1]/max*100)}%;background:${s[2]}"></div></div></div>`).join('');
+  }
+  const afn=document.getElementById('avgFeeNote');
+  if(afn)afn.textContent='Money uses '+inr(avgFee)+' average fee per placement (set your real number in Fee Calculator). Pipeline = candidates in play across all jobs.';
+  document.getElementById('openReqs').textContent=openJobs;
+  document.getElementById('reqWarn').style.display=openJobs?'none':'block';
+  const rm=document.getElementById('reqMsg');
+  if(openJobs){rm.style.display='block';rm.innerHTML=`You're working <b>${openJobs}</b> open job${openJobs>1?'s':''}. Open each one and match your ready candidates to it.`;}
+  else rm.style.display='none';
+
+  // today list — interviews first (most time-sensitive), then follow-ups, then jobs, then the rest
+  const todo=[],t0=today();
+  db.matches.filter(m=>m.interview&&m.stage==='Interviewing').sort((a,b)=>a.interview<b.interview?-1:1)
+    .forEach(m=>{const c=db.candidates.find(x=>x.id===m.candId);const o=db.openings.find(x=>x.id===m.openingId);
+      const d=m.interview.replace('T',' ');const soon=m.interview.slice(0,10)<=t0;
+      todo.push((soon?'<b style="color:#c2620a">Interview:</b> ':'<b style="color:#3358b8">Interview:</b> ')+esc(c?c.name:'candidate')+' for '+esc(o?o.title:'a role')+' — '+esc(d)+'.');});
+  db.clients.filter(c=>c.next&&c.next<=t0&&!['Dead','Placed with them'].includes(c.stage))
+    .forEach(c=>todo.push((c.next<t0?'<b style="color:#c33">Overdue:</b> ':'<b style="color:#b5740b">Due today:</b> ')+'follow up with <b>'+esc(c.company)+'</b> ('+esc(c.person||'contact')+').'));
+  db.openings.filter(o=>o.status==='Open'&&!db.matches.some(m=>m.openingId===o.id&&!['Rejected','Backed out'].includes(m.stage)))
+    .forEach(o=>todo.push((o.prio==='Hot'?'<b style="color:#c2620a">Hot job:</b> ':'')+'match a candidate to <b>'+esc(o.title)+'</b>'+(o.company?' ('+esc(o.company)+')':'')+'.'));
+  if(!db.openings.length&&!db.clients.length)todo.push('Add your first job in <b>Job Openings</b> — jobs come first.');
+  db.candidates.filter(c=>c.comm==='Not yet tested').forEach(c=>todo.push('Assess <b>'+esc(c.name)+'</b>\'s communication.'));
+  db.clients.filter(c=>c.stage==='To contact').forEach(c=>todo.push('Reach out to <b>'+esc(c.company)+'</b> ('+esc(c.person||'contact')+').'));
+  db.clients.filter(c=>c.stage==='Replied'&&!c.terms.startsWith('Yes')).forEach(c=>todo.push('Send terms confirmation to <b>'+esc(c.company)+'</b> before any profile.'));
+  db.submissions.filter(s=>s.status==='Submitted').forEach(s=>todo.push('Follow up <b>'+esc(s.candName)+'</b> → <b>'+esc(s.clientName)+'</b>.'));
+  const el=document.getElementById('todayList');
+  el.innerHTML=todo.length?todo.slice(0,8).map(t=>'<div class="check"><span style="color:var(--orange)">●</span><label>'+t+'</label></div>').join(''):'<p class="small">All caught up. Go land a client.</p>';
+}
+
+/* ---------- data ---------- */
+function exportData(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='svs-backup-'+today()+'.json';a.click();toast('Backup downloaded');
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.candidates&&!d.openings)throw 0;db=d;if(!db.openings)db.openings=[];if(!db.matches)db.matches=[];if(!db.scores)db.scores=[];if(!db.plan)db.plan={};save();renderAll();toast('Data restored');}catch(x){toast('Bad file');}};
+  r.readAsText(f);
+}
+/* TEAM MERGE — fold a teammate's backup into this one without a server.
+   The hard part: their ids collide with ours. So we re-key every incoming
+   record to a fresh id, remap all references, and dedupe by real identity. */
+function mergeData(inc){
+  ['openings','candidates','clients','matches','submissions','scores'].forEach(k=>{if(!inc[k])inc[k]=[];});
+  const norm=s=>(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+  const oMap={},cMap={},clMap={};
+  const added={openings:0,candidates:0,clients:0,matches:0,submissions:0,scores:0};
+  // openings: dedupe by title+company
+  inc.openings.forEach(o=>{
+    const key=norm(o.title)+'|'+norm(o.company);
+    const ex=db.openings.find(x=>norm(x.title)+'|'+norm(x.company)===key);
+    if(ex)oMap[o.id]=ex.id; else{const n=nid();oMap[o.id]=n;db.openings.push({...o,id:n});added.openings++;}
+  });
+  // candidates: dedupe by name+role (fall back to name)
+  inc.candidates.forEach(c=>{
+    const key=norm(c.name)+'|'+norm(c.role);
+    const ex=db.candidates.find(x=>norm(x.name)+'|'+norm(x.role)===key)||(norm(c.name)&&db.candidates.find(x=>norm(x.name)===norm(c.name)));
+    if(ex)cMap[c.id]=ex.id; else{const n=nid();cMap[c.id]=n;db.candidates.push({...c,id:n});added.candidates++;}
+  });
+  // clients: dedupe by company
+  inc.clients.forEach(c=>{
+    const key=norm(c.company);
+    const ex=key&&db.clients.find(x=>norm(x.company)===key);
+    if(ex)clMap[c.id]=ex.id; else{const n=nid();clMap[c.id]=n;db.clients.push({...c,id:n});added.clients++;}
+  });
+  // matches: remap refs, drop orphans, dedupe by (opening,candidate)
+  inc.matches.forEach(m=>{
+    const oid=oMap[m.openingId],cid=cMap[m.candId];
+    if(oid==null||cid==null)return;
+    if(db.matches.some(x=>x.openingId===oid&&x.candId===cid))return;
+    db.matches.push({...m,id:nid(),openingId:oid,candId:cid});added.matches++;
+  });
+  // submissions: dedupe by candName+clientName+date
+  inc.submissions.forEach(s=>{
+    if(db.submissions.some(x=>norm(x.candName)===norm(s.candName)&&norm(x.clientName)===norm(s.clientName)&&x.date===s.date))return;
+    db.submissions.unshift({...s,id:nid(),candId:cMap[s.candId]??s.candId,clientId:clMap[s.clientId]??s.clientId});added.submissions++;
+  });
+  // scores: dedupe by candName+date+pct
+  inc.scores.forEach(sc=>{
+    if(db.scores.some(x=>norm(x.candName)===norm(sc.candName)&&x.date===sc.date&&x.pct===sc.pct))return;
+    db.scores.unshift({...sc,id:nid(),candId:cMap[sc.candId]??sc.candId});added.scores++;
+  });
+  // plan checkboxes: OR them together. avgFee: keep ours, else theirs.
+  if(inc.plan)Object.keys(inc.plan).forEach(k=>{if(inc.plan[k])db.plan[k]=true;});
+  if(inc.avgFee&&!db.avgFee)db.avgFee=inc.avgFee;
+  save();
+  return added;
+}
+function mergeImport(e){
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{
+    let inc;try{inc=JSON.parse(r.result);}catch(x){toast('Bad file');return;}
+    if(!inc.candidates&&!inc.openings){toast('That is not an SVS backup file');return;}
+    const a=mergeData(inc);renderAll();
+    const parts=Object.keys(a).filter(k=>a[k]>0).map(k=>a[k]+' '+k);
+    document.getElementById('mergeResult').innerHTML=parts.length
+      ? '<div class="ok-box">Merged in: '+parts.join(', ')+'. Duplicates were skipped automatically.</div>'
+      : '<div class="ok-box">Nothing new — everything in that file was already here.</div>';
+    toast('Merge complete');
+  };
+  r.readAsText(f);e.target.value='';
+}
+function wipeAll(){if(!confirm('Erase ALL data on this device? This cannot be undone unless you have a backup.'))return;localStorage.removeItem(KEY);db=JSON.parse(JSON.stringify(seed));save();renderAll();toast('Wiped');}
+function loadDemo(){
+  if(db.openings.length||db.candidates.length||db.clients.length){
+    document.getElementById('demoWarn').textContent='You already have data — clear it first (Erase everything) if you want the sample.';return;
+  }
+  if(!confirm('Load a sample recruitment desk so you can see how it works?'))return;
+  const id=()=>db.seq++;
+  const o1=id(),o2=id(),o3=id();
+  db.openings=[
+    {id:o1,title:'PL/SQL Developer',company:'Acme Tech',loc:'Bangalore',count:'2',ctc:'8-11 LPA',fee:'8.33%',prio:'Hot',status:'Open',terms:'Yes — email confirmed',notes:'Oracle + PL/SQL, 3+ yrs. Two openings.'},
+    {id:o2,title:'BPO Voice Associate',company:'CallFirst',loc:'Hyderabad',count:'10',ctc:'2.5-3 LPA',fee:'₹8000 flat',prio:'Normal',status:'Open',terms:'No',notes:'Bulk hiring, night shift, good English.'},
+    {id:o3,title:'Java Backend Engineer',company:'FinEdge',loc:'Remote',count:'1',ctc:'14-18 LPA',fee:'8.33%',prio:'Normal',status:'Open',terms:'Yes — email confirmed',notes:'Spring Boot, AWS.'}
+  ];
+  const c1=id(),c2=id(),c3=id(),c4=id();
+  db.candidates=[
+    {id:c1,name:'Ramesh K',role:'PL/SQL Developer',type:'Experienced IT',exp:'4 yrs',loc:'Bangalore',comm:'Average',stage:'Interview ready',contact:'',notes:'Strong Oracle background.'},
+    {id:c2,name:'Priya S',role:'PL/SQL Developer',type:'Experienced IT',exp:'3 yrs',loc:'Remote',comm:'Strong',stage:'Resume ready',contact:'',notes:''},
+    {id:c3,name:'Anil M',role:'BPO Voice',type:'Fresher',exp:'Fresher',loc:'Hyderabad',comm:'Average',stage:'Assessed',contact:'',notes:''},
+    {id:c4,name:'Sneha R',role:'Java Backend',type:'Experienced IT',exp:'5 yrs',loc:'Remote',comm:'Strong',stage:'Interview ready',contact:'',notes:'Spring Boot + AWS.'}
+  ];
+  db.clients=[
+    {id:id(),company:'Acme Tech',person:'Ravi (TA)',role:'Talent Acquisition / Recruiter',type:'IT services / vendor',source:'LinkedIn',req:'2x PL/SQL',stage:'Has live req',terms:'Yes — email confirmed',contact:'ravi@acme.example',next:'',notes:'Keen, moves fast.'},
+    {id:id(),company:'CallFirst',person:'Meena (HR)',role:'HR Generalist',type:'BPO',source:'Referral',req:'10x voice',stage:'Terms agreed',terms:'Yes — email confirmed',contact:'',next:'',notes:''}
+  ];
+  db.matches=[
+    {id:id(),openingId:o1,candId:c1,stage:'Interviewing',date:today()},
+    {id:id(),openingId:o1,candId:c2,stage:'Submitted to client',date:today()},
+    {id:id(),openingId:o3,candId:c4,stage:'Offer',date:today()},
+    {id:id(),openingId:o2,candId:c3,stage:'Shortlisted',date:today()}
+  ];
+  db.avgFee=60000;
+  save();renderAll();
+  document.getElementById('demoWarn').textContent='';
+  showView('board');
+  toast('Sample desk loaded — this is the Pipeline board');
+}
+
+/* ---------- helpers ---------- */
+function val(id){return document.getElementById(id).value.trim();}
+function set(id,v){document.getElementById(id).value=v;}
+function esc(s){return(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+/* ---------- welcome (first run) ---------- */
+function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
+function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
+
+function renderAll(){renderHome();renderOpenings();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();renderTeam();calcFee();renderJobCandBtns();renderJobSources();}
+document.getElementById('s_date').value=today();
+document.getElementById('sc_date').value=today();
+if(db.avgFee)document.getElementById('f_avg').value=db.avgFee;
+renderScSliders();calcScore();
+renderAll();
+maybeWelcome();
+
+/* ---------- offline (service worker) ---------- */
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

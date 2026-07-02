@@ -2,7 +2,7 @@
   "name": "SVS Consultancy Console",
   "short_name": "SVS Console",
   "description": "Run your recruitment and placement consultancy from one simple app.",
-  "start_url": "./index.html",
+  "start_url": "./app.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#16264d",
