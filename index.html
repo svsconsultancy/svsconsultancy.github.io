@@ -1284,12 +1284,22 @@ function moveMatch(id,dir){
   const m=db.matches.find(x=>x.id===id);if(!m)return;
   const i=MATCH_STAGES.indexOf(m.stage);const ni=Math.max(0,Math.min(MATCH_STAGES.length-1,i+dir));
   m.stage=MATCH_STAGES[ni];
-  // keep candidate record roughly in sync with best signal
-  const c=db.candidates.find(x=>x.id===m.candId);
-  if(c){if(m.stage==='Joined')c.stage='Placed';else if(['Submitted to client','Interviewing','Offer'].includes(m.stage)&&c.stage!=='Placed')c.stage='Submitted to client';}
+  syncCandidateStage(m.candId);
   save();renderMatches();renderOpenings();renderHome();renderCandidates();renderBoard();
 }
-function delMatch(id){if(!confirm('Remove this candidate from the job?'))return;db.matches=db.matches.filter(m=>m.id!==id);save();renderMatchCandOptions();renderMatches();renderOpenings();renderHome();}
+/* derive a candidate's stage from ALL their matches, so it never goes stale.
+   placed if any match joined; else the furthest-along live match; else leave as-is. */
+function syncCandidateStage(candId){
+  const c=db.candidates.find(x=>x.id===candId);if(!c)return;
+  const ms=db.matches.filter(m=>m.candId===candId);
+  if(ms.some(m=>m.stage==='Joined')){c.stage='Placed';return;}
+  const live=ms.filter(m=>['Submitted to client','Interviewing','Offer'].includes(m.stage));
+  if(live.length){if(c.stage!=='Placed')c.stage='Submitted to client';return;}
+  // no live matches: if they were auto-marked Placed/Submitted but nothing supports it now, step back
+  if(c.stage==='Placed'&&!ms.some(m=>m.stage==='Joined'))c.stage='Interview ready';
+  else if(c.stage==='Submitted to client'&&!live.length)c.stage='Interview ready';
+}
+function delMatch(id){if(!confirm('Remove this candidate from the job?'))return;const m=db.matches.find(x=>x.id===id);const cid=m&&m.candId;db.matches=db.matches.filter(m=>m.id!==id);if(cid!=null)syncCandidateStage(cid);save();renderMatchCandOptions();renderMatches();renderOpenings();renderHome();renderCandidates();renderBoard();}
 function renderMatches(){
   const tb=document.querySelector('#od_matches tbody');tb.innerHTML='';
   const ms=db.matches.filter(m=>m.openingId===curOpening);
