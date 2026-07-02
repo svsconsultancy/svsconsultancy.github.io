@@ -779,7 +779,7 @@ function renderCandidates(){
       <td>${esc(c.type)}</td><td>${esc(c.loc)||'<span class="small">—</span>'}</td>
       <td>${esc(c.comm)}</td>
       <td><span class="pill" style="${stageColor[c.stage]||''}">${esc(c.stage)}</span></td>
-      <td class="row-actions"><button class="btn sm" onclick="pitchCand(${c.id})">Pitch</button>
+      <td class="row-actions"><button class="btn sm" onclick="pitchCand(${c.id})">Pitch</button><button class="btn sm" style="background:#25d366" onclick="sendProfile(${c.id})">Profile</button>
       <button class="btn ghost sm" onclick="editCandidate(${c.id})">Edit</button>
       <button class="btn danger sm" onclick="delCandidate(${c.id})">Del</button></td>`;
     tb.appendChild(tr);
@@ -792,6 +792,20 @@ function pitchCand(id){
   const msg=`Hi [name], I run a recruitment desk at SVS Consultancy. I have a ${c.role||'candidate'}${exp?' ('+c.exp+')':''}, available now${loc}. If you have a matching opening I can share the profile today. Are you hiring for this right now?`;
   navigator.clipboard.writeText(msg).catch(()=>{});
   waSend(msg);
+}
+/* send a client the full profile of ONE candidate (after they've said yes) */
+function sendProfile(id){
+  const c=db.candidates.find(x=>x.id===id);if(!c)return;
+  let t='Candidate profile — via SVS Consultancy\n\n';
+  t+='Name: '+(c.name||'')+'\n';
+  if(c.role)t+='Role: '+c.role+'\n';
+  if(c.exp)t+='Experience: '+c.exp+'\n';
+  if(c.loc)t+='Location: '+c.loc+'\n';
+  if(c.comm&&c.comm!=='Not yet tested')t+='Communication: '+c.comm+'\n';
+  if(c.notes)t+='Notes: '+c.notes+'\n';
+  t+='\nFull CV available on request. Submitted subject to our agreed terms. — SVS Consultancy';
+  navigator.clipboard.writeText(t).catch(()=>{});
+  waSend(t);
 }
 
 /* ---------- clients ---------- */
