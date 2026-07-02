@@ -137,6 +137,7 @@
   <button data-v="playbook">HR Playbook</button>
   <button data-v="fees">Fee Calculator</button>
   <button data-v="plan">90-Day Plan</button>
+  <button data-v="team">Team</button>
   <button data-v="data">Backup</button>
   <button data-v="install">Install</button>
 </nav>
@@ -636,6 +637,16 @@
   <div id="planWrap"></div>
 </section>
 
+<!-- TEAM -->
+<section class="view" id="team">
+  <h2>The Team</h2>
+  <p class="sub">Who runs SVS. Each partner fills in their own profile — your lane, what you're good at, a short bio. Tap Edit on your own card. Nothing here is public unless you put it on the LinkedIn page yourself.</p>
+  <div id="teamCards"></div>
+  <div class="card">
+    <button class="btn ghost sm" onclick="addTeamMember()">+ Add another team member</button>
+  </div>
+</section>
+
 <!-- DATA -->
 <section class="view" id="data">
   <h2>Backup &amp; Restore</h2>
@@ -736,11 +747,16 @@ const seed={
   matches:[],
   submissions:[],
   scores:[],
+  team:[
+    {id:'t1',name:'Vikas',lane:'Client side',title:'',skills:'',bio:'',contact:''},
+    {id:'t2',name:'Sanju',lane:'Candidate side',title:'',skills:'',bio:'',contact:''},
+    {id:'t3',name:'Shashank',lane:'Coordination',title:'',skills:'',bio:'',contact:''}
+  ],
   plan:{},
   seq:1
 }
 let db=load();
-function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.matches)d.matches=[];if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
+function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
 function nid(){return db.seq++;}
 
@@ -1379,6 +1395,59 @@ function renderBoard(){
   }).join('');
 }
 
+/* ---------- team ---------- */
+const LANES=['Client side','Candidate side','Coordination','Founder','Recruiter','Support'];
+let editTeamId=null;
+function renderTeam(){
+  const w=document.getElementById('teamCards');if(!w)return;
+  w.innerHTML=db.team.map(t=>{
+    if(editTeamId===t.id){
+      return `<div class="card">
+        <div class="grid g2">
+          <div><label>Name</label><input id="tm_name_${t.id}" value="${esc(t.name)}"></div>
+          <div><label>Lane / role in SVS</label><select id="tm_lane_${t.id}">${LANES.map(l=>`<option ${l===t.lane?'selected':''}>${l}</option>`).join('')}</select></div>
+          <div><label>Title (optional)</label><input id="tm_title_${t.id}" value="${esc(t.title||'')}" placeholder="e.g. Co-founder"></div>
+          <div><label>Contact (optional)</label><input id="tm_contact_${t.id}" value="${esc(t.contact||'')}" placeholder="phone / email"></div>
+        </div>
+        <label>Skills / what you're good at</label><input id="tm_skills_${t.id}" value="${esc(t.skills||'')}" placeholder="e.g. sourcing, IT screening, client calls">
+        <label>Short bio</label><textarea id="tm_bio_${t.id}" placeholder="A line or two, in your own words.">${esc(t.bio||'')}</textarea>
+        <div class="topbtns" style="margin-top:12px">
+          <button class="btn orange" onclick="saveTeam('${t.id}')">Save</button>
+          <button class="btn ghost" onclick="editTeamId=null;renderTeam()">Cancel</button>
+          <button class="btn danger" onclick="delTeam('${t.id}')">Remove</button>
+        </div>
+      </div>`;
+    }
+    const laneColor={'Client side':'#1f4fb0','Candidate side':'#3358b8','Coordination':'#b5740b','Founder':'#177a42','Recruiter':'#c2620a','Support':'#6b7689'}[t.lane]||'#1f3566';
+    const initials=(t.name||'?').trim().split(/\s+/).map(x=>x[0]).join('').slice(0,2).toUpperCase();
+    return `<div class="card" style="display:flex;gap:14px;align-items:flex-start">
+      <div style="flex:0 0 52px;height:52px;border-radius:50%;background:${laneColor};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">${esc(initials)}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+          <div><b style="font-size:16px">${esc(t.name)}</b> <span class="pill" style="background:#eef2fb;color:${laneColor}">${esc(t.lane)}</span>${t.title?'<br><span class="small">'+esc(t.title)+'</span>':''}</div>
+          <button class="btn ghost sm" onclick="editTeamId='${t.id}';renderTeam()">Edit</button>
+        </div>
+        ${t.skills?'<p class="small" style="margin:8px 0 2px"><b>Skills:</b> '+esc(t.skills)+'</p>':''}
+        ${t.bio?'<p class="small" style="margin:2px 0">'+esc(t.bio)+'</p>':''}
+        ${t.contact?'<p class="small" style="margin:2px 0;color:var(--navy2)">'+esc(t.contact)+'</p>':''}
+        ${!t.skills&&!t.bio?'<p class="hint" style="margin:6px 0 0">Not filled in yet — tap Edit to add your details.</p>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function saveTeam(id){
+  const t=db.team.find(x=>x.id===id);if(!t)return;
+  t.name=(document.getElementById('tm_name_'+id).value||'').trim()||t.name;
+  t.lane=document.getElementById('tm_lane_'+id).value;
+  t.title=document.getElementById('tm_title_'+id).value.trim();
+  t.contact=document.getElementById('tm_contact_'+id).value.trim();
+  t.skills=document.getElementById('tm_skills_'+id).value.trim();
+  t.bio=document.getElementById('tm_bio_'+id).value.trim();
+  editTeamId=null;save();renderTeam();toast('Profile saved');
+}
+function delTeam(id){if(!confirm('Remove this team member?'))return;db.team=db.team.filter(x=>x.id!==id);editTeamId=null;save();renderTeam();}
+function addTeamMember(){const id='t'+nid();db.team.push({id,name:'New member',lane:'Support',title:'',skills:'',bio:'',contact:''});editTeamId=id;save();renderTeam();window.scrollTo(0,0);}
+
 /* ---------- global search ---------- */
 function renderSearch(){
   const q=(document.getElementById('globalSearch').value||'').trim().toLowerCase();
@@ -1573,7 +1642,7 @@ function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
 function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
 
-function renderAll(){renderHome();renderOpenings();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();calcFee();renderJobCandBtns();renderJobSources();}
+function renderAll(){renderHome();renderOpenings();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();renderTeam();calcFee();renderJobCandBtns();renderJobSources();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
 if(db.avgFee)document.getElementById('f_avg').value=db.avgFee;
