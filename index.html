@@ -6,110 +6,201 @@
 <title>SVS Consultancy — Hiring &amp; Placement Support</title>
 <meta name="description" content="SVS Consultancy helps job seekers get hired and helps companies fill open roles. Resume help, interview prep, and placement support. No charge to candidates.">
 <meta name="theme-color" content="#16264d">
+<link rel="canonical" href="https://svsconsultancy.github.io/">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta property="og:title" content="SVS Consultancy — Hiring &amp; Placement Support">
 <meta property="og:description" content="We help people get hired and help companies fill roles. Send us your CV — no charge to candidates.">
 <meta property="og:type" content="website">
+<meta property="og:url" content="https://svsconsultancy.github.io/">
+<meta property="og:image" content="https://svsconsultancy.github.io/icon-512.png">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EmploymentAgency",
+  "name": "SVS Consultancy",
+  "description": "Hiring and placement support. We help job seekers get hired and help companies fill open roles. No charge to candidates.",
+  "url": "https://svsconsultancy.github.io/",
+  "email": "svsconsultancy.technologies@gmail.com",
+  "areaServed": "IN",
+  "slogan": "Restart. Rebuild. Get Placed.",
+  "makesOffer": {
+    "@type": "Offer",
+    "description": "Placement support for job seekers at no charge; employers pay only on a successful hire."
+  }
+}
+</script>
 <style>
-  :root{--navy:#16264d;--navy2:#1f3566;--orange:#f47b20;--orange2:#ff9544;--ink:#1b2333;--muted:#6b7689;--line:#e6e9f0;--bg:#fff;--soft:#f4f6fb;--green:#1f9d55}
+  :root{
+    --navy:#16264d;--navy2:#1f3566;--navy3:#0e1a38;
+    --orange:#f47b20;--orange2:#ff9544;
+    --ink:#1b2333;--muted:#6b7689;--line:#e6e9f0;
+    --bg:#fff;--soft:#f4f6fb;--green:#1f9d55;--wa:#1aa851;
+    --shadow:0 2px 14px rgba(20,38,77,.06);--shadow-lg:0 18px 50px rgba(20,38,77,.14);
+    --r:16px;
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.6;font-size:16px;background:var(--bg)}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);line-height:1.6;font-size:16px;background:var(--bg);-webkit-font-smoothing:antialiased}
   a{color:var(--navy2)}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+  .skip{position:absolute;left:-999px;top:0;background:var(--navy);color:#fff;padding:10px 16px;border-radius:0 0 8px 0;z-index:100}
+  .skip:focus{left:0}
+  :focus-visible{outline:3px solid var(--orange);outline-offset:2px;border-radius:6px}
+
   /* header */
-  header{position:sticky;top:0;z-index:30;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-  .nav{display:flex;align-items:center;gap:14px;padding:14px 20px;max-width:1080px;margin:0 auto}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:18px}
-  .mk{width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;letter-spacing:-1px}
-  .mk span{color:var(--orange)}
-  .nav .links{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .nav .links a{text-decoration:none;color:var(--ink);font-size:14px;font-weight:600;padding:8px 12px;border-radius:8px}
+  header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:14px;padding:13px 20px;max-width:1080px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:18px;text-decoration:none}
+  .mk{width:38px;height:38px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;letter-spacing:-1px;flex:none}
+  .mk span{color:var(--orange2)}
+  .nav .links{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .nav .links a{text-decoration:none;color:var(--ink);font-size:14px;font-weight:600;padding:8px 12px;border-radius:8px;transition:.15s}
   .nav .links a:hover{background:var(--soft)}
-  .btn{display:inline-block;text-decoration:none;font-weight:700;border-radius:10px;padding:12px 22px;font-size:15px;cursor:pointer;border:0;transition:.15s}
-  .btn.primary{background:var(--orange);color:#fff}
+  @media(max-width:620px){.nav .links a.navlink{display:none}}
+
+  .btn{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;border-radius:11px;padding:13px 24px;font-size:15px;cursor:pointer;border:0;transition:transform .15s,box-shadow .15s,background .15s;line-height:1}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.primary{background:var(--orange);color:#fff;box-shadow:0 6px 18px rgba(244,123,32,.32)}
   .btn.primary:hover{background:#e06d12}
   .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--navy)}
   .btn.ghost:hover{border-color:var(--navy2)}
-  .btn.wa{background:#25d366;color:#fff}
-  .btn.sm{padding:9px 15px;font-size:14px}
+  .btn.wa{background:var(--wa);color:#fff;box-shadow:0 6px 18px rgba(37,211,102,.3)}
+  .btn.sm{padding:9px 16px;font-size:14px}
+  .btn.lite{background:rgba(255,255,255,.16);color:#fff;border:1.5px solid rgba(255,255,255,.45)}
+  .btn.lite:hover{background:rgba(255,255,255,.2)}
+
   /* hero */
-  .hero{background:linear-gradient(150deg,var(--navy),var(--navy2));color:#fff;padding:70px 0 80px;text-align:center}
-  .hero h1{font-size:42px;line-height:1.15;font-weight:800;letter-spacing:-.5px;max-width:760px;margin:0 auto 18px}
-  .hero p{font-size:19px;color:#cdd6ea;max-width:620px;margin:0 auto 30px}
+  .hero{position:relative;overflow:hidden;background:linear-gradient(155deg,var(--navy3),var(--navy2) 60%,var(--navy));color:#fff;padding:78px 0 74px;text-align:center}
+  .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;z-index:0}
+  .hero:before{width:420px;height:420px;background:radial-gradient(circle,rgba(244,123,32,.5),transparent 70%);top:-140px;right:-90px;animation:float1 14s ease-in-out infinite}
+  .hero:after{width:360px;height:360px;background:radial-gradient(circle,rgba(66,120,220,.5),transparent 70%);bottom:-150px;left:-80px;animation:float2 17s ease-in-out infinite}
+  @keyframes float1{50%{transform:translate(-24px,26px)}}
+  @keyframes float2{50%{transform:translate(28px,-20px)}}
+  .hero .wrap{position:relative;z-index:1}
+  .tag{display:inline-block;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);color:#fff;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:22px;letter-spacing:.4px}
+  .hero h1{font-size:44px;line-height:1.12;font-weight:800;letter-spacing:-.6px;max-width:780px;margin:0 auto 18px}
+  .hero h1 .hl{background:linear-gradient(120deg,var(--orange2),#ffd08a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:19px;color:#cdd6ea;max-width:600px;margin:0 auto 30px}
   .hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-  .tag{display:inline-block;background:rgba(255,255,255,.12);color:#fff;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:22px;letter-spacing:.3px}
-  .trust{margin-top:26px;font-size:14px;color:#aebbd8}
+  .trust{margin-top:30px;font-size:14px;color:#aebbd8}
   .trust b{color:#fff}
+
+  /* stat band */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:720px;margin:42px auto 0;position:relative;z-index:1}
+  .stat{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:18px 12px}
+  .stat b{display:block;font-size:26px;color:#fff;font-weight:800;letter-spacing:-.5px}
+  .stat span{font-size:13px;color:#aebbd8}
+  @media(max-width:560px){.stats{grid-template-columns:1fr;max-width:320px}}
+
   /* sections */
-  section{padding:64px 0}
+  section{padding:66px 0}
   section.alt{background:var(--soft)}
-  h2{font-size:30px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:10px;letter-spacing:-.3px}
+  h2{font-size:31px;font-weight:800;color:var(--navy);text-align:center;margin-bottom:10px;letter-spacing:-.4px}
   .lead{text-align:center;color:var(--muted);max-width:600px;margin:0 auto 40px;font-size:17px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-  @media(max-width:800px){.two{grid-template-columns:1fr}.hero h1{font-size:32px}.hero p{font-size:17px}}
-  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;box-shadow:0 2px 14px rgba(20,38,77,.05)}
+  @media(max-width:800px){.two{grid-template-columns:1fr}.hero h1{font-size:33px}.hero p{font-size:17px}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:32px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
   .card h3{font-size:22px;color:var(--navy);margin-bottom:6px}
-  .card .who{color:var(--orange);font-weight:700;font-size:14px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+  .card .who{color:var(--orange);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.7px;margin-bottom:14px}
   .card ul{list-style:none;margin:14px 0 22px}
-  .card li{padding:7px 0 7px 28px;position:relative;color:var(--ink)}
-  .card li:before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:800}
+  .card li{padding:8px 0 8px 30px;position:relative;color:var(--ink)}
+  .card li:before{content:"✓";position:absolute;left:0;top:8px;width:20px;height:20px;background:rgba(31,157,85,.12);color:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+
   .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:10px}
   @media(max-width:800px){.steps{grid-template-columns:1fr 1fr}}
-  .step{text-align:center;padding:10px}
-  .step .n{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin:0 auto 12px}
+  .step{text-align:center;padding:12px}
+  .step .n{width:46px;height:46px;border-radius:50%;background:linear-gradient(145deg,var(--navy),var(--navy2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin:0 auto 12px;box-shadow:0 6px 16px rgba(20,38,77,.2)}
   .step h4{color:var(--navy);font-size:16px;margin-bottom:4px}
   .step p{font-size:14px;color:var(--muted)}
+
   .who-for{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:760px;margin:24px auto 0}
   @media(max-width:800px){.who-for{grid-template-columns:1fr 1fr}}
-  .chip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;font-weight:600;color:var(--navy);font-size:15px}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;font-weight:600;color:var(--navy);font-size:15px;transition:.15s}
+  .chip:hover{border-color:var(--orange);transform:translateY(-2px)}
   .chip span{display:block;font-size:26px;margin-bottom:6px}
+
+  /* faq */
+  .faq{max-width:720px;margin:0 auto}
+  details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:2px 20px;margin-bottom:12px;box-shadow:var(--shadow)}
+  details summary{cursor:pointer;font-weight:700;color:var(--navy);padding:16px 0;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  details summary::-webkit-details-marker{display:none}
+  details summary:after{content:"+";font-size:22px;color:var(--orange);font-weight:700;transition:.2s;flex:none}
+  details[open] summary:after{transform:rotate(45deg)}
+  details p{padding:0 0 18px;color:var(--muted);font-size:15px}
+
   /* contact */
   .contact{text-align:center}
-  .contact .box{max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:34px}
-  .contact .row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+  .contact .box{max-width:520px;margin:0 auto;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:36px;box-shadow:var(--shadow-lg)}
+  .contact .row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:20px}
   .note{font-size:13px;color:var(--muted);margin-top:18px}
+  .banner{background:#fff7ee;border:1px solid #ffd9a8;border-radius:12px;padding:16px 20px;max-width:640px;margin:26px auto 0;font-size:14px;color:#8a5412;text-align:center}
+
   /* footer */
-  footer{background:var(--navy);color:#aebbd8;padding:36px 0;text-align:center;font-size:14px}
-  footer .brand{justify-content:center;color:#fff;margin-bottom:10px}
+  footer{background:var(--navy3);color:#aebbd8;padding:40px 0 30px;text-align:center;font-size:14px}
+  footer .brand{justify-content:center;color:#fff;margin-bottom:12px;display:inline-flex}
   footer a{color:#cdd6ea}
   .foot-links{margin-top:12px;font-size:13px}
-  .banner{background:#fff7ee;border:1px solid #ffd9a8;border-radius:12px;padding:14px 18px;max-width:620px;margin:0 auto;font-size:14px;color:#8a5412;text-align:center}
+
+  /* sticky mobile CTA */
+  .mcta{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;gap:10px;padding:10px 14px;background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-top:1px solid var(--line)}
+  .mcta .btn{flex:1;justify-content:center;padding:13px 10px}
+  @media(max-width:620px){.mcta{display:flex}body{padding-bottom:74px}}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;scroll-behavior:auto!important}
+    .reveal{opacity:1;transform:none;transition:none}
+    .btn:hover,.card:hover,.chip:hover{transform:none}
+  }
 </style>
 </head>
 <body>
+<a href="#seekers" class="skip">Skip to content</a>
 
 <header>
   <div class="nav">
-    <a href="#top" style="text-decoration:none"><span class="brand"><span class="mk">S<span>V</span>S</span> SVS Consultancy</span></a>
-    <div class="links">
-      <a href="#seekers">Job seekers</a>
-      <a href="#employers">Employers</a>
-      <a href="#how">How it works</a>
+    <a href="#top" class="brand"><span class="mk">S<span>V</span>S</span> SVS Consultancy</a>
+    <nav class="links" aria-label="Primary">
+      <a class="navlink" href="#seekers">Job seekers</a>
+      <a class="navlink" href="#employers">Employers</a>
+      <a class="navlink" href="#how">How it works</a>
+      <a class="navlink" href="#faq">FAQ</a>
       <a href="#contact" class="btn primary sm" style="color:#fff">Contact</a>
-    </div>
+    </nav>
   </div>
 </header>
 
 <div id="top" class="hero">
   <div class="wrap">
     <span class="tag">Restart. Rebuild. Get Placed.</span>
-    <h1>We help people get hired, and help companies find the right people.</h1>
+    <h1>We help people get hired, and help companies find <span class="hl">the right people</span>.</h1>
     <p>Whether you're looking for a job or looking to hire, SVS Consultancy connects the two. Real support, honest guidance, no games.</p>
     <div class="cta">
       <a href="#seekers" class="btn primary">I'm looking for a job</a>
-      <a href="#employers" class="btn ghost" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.3)">I'm hiring</a>
+      <a href="#employers" class="btn lite">I'm hiring</a>
     </div>
     <div class="trust">No charge to candidates. Companies pay us only when we place someone.</div>
+    <div class="stats">
+      <div class="stat"><b>₹0</b><span>cost to job seekers</span></div>
+      <div class="stat"><b>2 sides</b><span>candidates and employers</span></div>
+      <div class="stat"><b>Pay on hire</b><span>employers only when placed</span></div>
+    </div>
   </div>
 </div>
 
 <!-- JOB SEEKERS -->
 <section id="seekers">
   <div class="wrap">
-    <h2>For job seekers</h2>
-    <p class="lead">A good candidate often loses out not for lack of skill, but because they don't know how to show it. That's the gap we close.</p>
+    <h2 class="reveal">For job seekers</h2>
+    <p class="lead reveal">A good candidate often loses out not for lack of skill, but because they don't know how to show it. That's the gap we close.</p>
     <div class="two">
-      <div class="card">
+      <div class="card reveal">
         <div class="who">What we do for you</div>
         <h3>Get you ready, then get you seen</h3>
         <ul>
@@ -120,7 +211,7 @@
         </ul>
         <a href="#contact" class="btn primary">Send us your CV</a>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <div class="who">Who we help</div>
         <h3>Wherever you are in your journey</h3>
         <div class="who-for">
@@ -140,10 +231,10 @@
 <!-- EMPLOYERS -->
 <section id="employers" class="alt">
   <div class="wrap">
-    <h2>For employers</h2>
-    <p class="lead">Have a role to fill? We source, screen, and send you candidates who fit, so you spend less time sifting and more time hiring.</p>
+    <h2 class="reveal">For employers</h2>
+    <p class="lead reveal">Have a role to fill? We source, screen, and send you candidates who fit, so you spend less time sifting and more time hiring.</p>
     <div class="two">
-      <div class="card">
+      <div class="card reveal">
         <div class="who">What you get</div>
         <h3>Screened candidates, not a pile of resumes</h3>
         <ul>
@@ -154,7 +245,7 @@
         </ul>
         <a href="#contact" class="btn primary">Tell us what you're hiring for</a>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <div class="who">How we charge</div>
         <h3>You pay only on a successful hire</h3>
         <p>No upfront cost. Our fee is due only when a candidate we sent actually joins, and it comes with a replacement guarantee if they leave early. Terms are always agreed in writing first.</p>
@@ -166,32 +257,47 @@
 <!-- HOW IT WORKS -->
 <section id="how">
   <div class="wrap">
-    <h2>How it works</h2>
-    <p class="lead">Simple, on both sides.</p>
+    <h2 class="reveal">How it works</h2>
+    <p class="lead reveal">Simple, on both sides.</p>
     <div class="steps">
-      <div class="step"><div class="n">1</div><h4>Reach out</h4><p>Send your CV, or tell us your open role.</p></div>
-      <div class="step"><div class="n">2</div><h4>We prepare</h4><p>Get candidates ready; match them to roles.</p></div>
-      <div class="step"><div class="n">3</div><h4>We connect</h4><p>Right candidate meets right company.</p></div>
-      <div class="step"><div class="n">4</div><h4>Get placed</h4><p>Interview, offer, join. Done.</p></div>
+      <div class="step reveal"><div class="n">1</div><h4>Reach out</h4><p>Send your CV, or tell us your open role.</p></div>
+      <div class="step reveal"><div class="n">2</div><h4>We prepare</h4><p>Get candidates ready; match them to roles.</p></div>
+      <div class="step reveal"><div class="n">3</div><h4>We connect</h4><p>Right candidate meets right company.</p></div>
+      <div class="step reveal"><div class="n">4</div><h4>Get placed</h4><p>Interview, offer, join. Done.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="alt">
+  <div class="wrap">
+    <h2 class="reveal">Common questions</h2>
+    <p class="lead reveal">Straight answers to what people usually ask.</p>
+    <div class="faq">
+      <details class="reveal"><summary>Do job seekers pay anything?</summary><p>No. There's no charge to candidates for placement. We're paid by the companies that hire. If anyone claiming to be us asks you for money to get a job, it isn't us.</p></details>
+      <details class="reveal"><summary>What kind of roles do you work on?</summary><p>Freshers, career switchers, people restarting after a break, BPO roles, and MNC roles. If you're not sure whether we can help, just send your CV and we'll tell you honestly.</p></details>
+      <details class="reveal"><summary>How do employers get charged?</summary><p>Nothing upfront. Our fee is due only when a candidate we sent actually joins, and it comes with a replacement guarantee if they leave early. Terms are always agreed in writing first.</p></details>
+      <details class="reveal"><summary>How fast do you send candidates?</summary><p>We screen for skills and communication before you see anyone, then send a shortlist quickly so roles don't stay open. Timing depends on the role, and we'll be upfront about it.</p></details>
+      <details class="reveal"><summary>How do I get started?</summary><p>Email us your CV (if you're job hunting) or your hiring requirement (if you're an employer) and we'll get back to you.</p></details>
     </div>
   </div>
 </section>
 
 <!-- CONTACT -->
-<section id="contact" class="alt contact">
+<section id="contact" class="contact">
   <div class="wrap">
-    <h2>Get in touch</h2>
-    <p class="lead">Job seeker or employer, we'd love to hear from you.</p>
-    <div class="box">
+    <h2 class="reveal">Get in touch</h2>
+    <p class="lead reveal">Job seeker or employer, we'd love to hear from you.</p>
+    <div class="box reveal">
       <p style="font-weight:700;color:var(--navy);font-size:18px">Send us a message</p>
       <p class="note" style="margin-top:6px">Email your CV or your hiring requirement and we'll get back to you.</p>
       <div class="row">
-        <a href="mailto:[EMAIL]" class="btn primary">Email us</a>
-        <a href="[WHATSAPP]" class="btn wa">WhatsApp</a>
+        <a href="mailto:svsconsultancy.technologies@gmail.com?subject=Enquiry%20via%20SVS%20Consultancy%20website" class="btn primary">Email us</a>
+        <a href="[WHATSAPP]" class="btn wa" data-wa>WhatsApp</a>
       </div>
-      <p class="note">📧 [EMAIL] &nbsp;·&nbsp; 📱 [PHONE]</p>
+      <p class="note">📧 svsconsultancy.technologies@gmail.com</p>
     </div>
-    <div class="banner" style="margin-top:24px"><b>A note on trust:</b> we never ask job seekers to pay for a placement. If anyone claiming to be us asks you for money to get a job, it isn't us.</div>
+    <div class="banner"><b>A note on trust:</b> we never ask job seekers to pay for a placement. If anyone claiming to be us asks you for money to get a job, it isn't us.</div>
   </div>
 </section>
 
@@ -202,13 +308,46 @@
     <div class="foot-links">
       <a href="#seekers">Job seekers</a> &nbsp;·&nbsp;
       <a href="#employers">Employers</a> &nbsp;·&nbsp;
+      <a href="#faq">FAQ</a> &nbsp;·&nbsp;
       <a href="#contact">Contact</a>
     </div>
-    <div class="foot-links" style="margin-top:14px;opacity:.6">
+    <div class="foot-links" style="margin-top:14px;opacity:.55">
       <a href="app.html">Team login</a>
     </div>
   </div>
 </footer>
 
+<!-- sticky mobile CTA -->
+<div class="mcta">
+  <a href="mailto:svsconsultancy.technologies@gmail.com?subject=Enquiry%20via%20SVS%20Consultancy%20website" class="btn primary">Email us</a>
+  <a href="[WHATSAPP]" class="btn wa" data-wa>WhatsApp</a>
+</div>
+
+<script>
+  // reveal on scroll (respects reduced-motion via CSS)
+  (function(){
+    var els=document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return;}
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});
+    },{threshold:.12});
+    els.forEach(function(e){io.observe(e);});
+  })();
+
+  // graceful fallback: if WhatsApp number not wired yet, route WA buttons to email
+  (function(){
+    document.querySelectorAll('[data-wa]').forEach(function(a){
+      var href=a.getAttribute('href')||'';
+      if(href.indexOf('wa.me')===-1){
+        a.setAttribute('href','mailto:svsconsultancy.technologies@gmail.com?subject=Enquiry%20via%20SVS%20Consultancy%20website');
+        a.textContent='Email us';
+        a.classList.remove('wa');a.classList.add('primary');
+      }
+    });
+  })();
+
+  // service worker (offline / installable) — keep existing behavior
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+</script>
 </body>
 </html>
