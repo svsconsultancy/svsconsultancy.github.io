@@ -17,8 +17,9 @@
 <style>
   :root{--navy:#16264d;--navy2:#1f3566;--navy3:#0e1a38;--orange:#f47b20;--orange2:#ff9544;--wa:#1aa851;--line:rgba(255,255,255,.16)}
   *{box-sizing:border-box;margin:0;padding:0}
+  html,body{max-width:100%;overflow-x:hidden}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#fff;-webkit-font-smoothing:antialiased;min-height:100vh;
-    background:linear-gradient(160deg,var(--navy3),var(--navy2) 55%,var(--navy));display:flex;flex-direction:column;align-items:center;padding:48px 20px 40px;position:relative;overflow-x:hidden}
+    background:linear-gradient(160deg,var(--navy3),var(--navy2) 55%,var(--navy));display:flex;flex-direction:column;align-items:center;padding:48px 20px 40px;position:relative}
   body:before,body:after{content:"";position:fixed;border-radius:50%;filter:blur(70px);opacity:.5;z-index:0}
   body:before{width:380px;height:380px;background:radial-gradient(circle,rgba(244,123,32,.5),transparent 70%);top:-130px;right:-90px;animation:f1 15s ease-in-out infinite}
   body:after{width:340px;height:340px;background:radial-gradient(circle,rgba(66,120,220,.5),transparent 70%);bottom:-150px;left:-80px;animation:f2 18s ease-in-out infinite}
