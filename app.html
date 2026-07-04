@@ -385,6 +385,23 @@
   </div>
 
   <div class="card">
+    <h3>⏰ Upcoming interviews &amp; urgent jobs</h3>
+    <p class="small" style="margin-top:0">Anything with a scheduled interview or marked urgent, soonest first — chase these before the rest.</p>
+    <div id="mkUpcoming"></div>
+  </div>
+
+  <div class="card">
+    <h3>🔔 Alerts (saved searches)</h3>
+    <p class="small" style="margin-top:0">Save a search (skill + location). The badge shows how many jobs match it right now, so you see new matches the moment you log or import them.</p>
+    <div class="inline">
+      <div><label>Skill / title</label><input id="al_skill" placeholder="e.g. Java"></div>
+      <div><label>Location</label><input id="al_loc" placeholder="e.g. Hyderabad"></div>
+      <div style="flex:0;align-self:flex-end"><button class="btn orange" onclick="addAlert()">Save alert</button></div>
+    </div>
+    <div id="mkAlerts" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
     <h3>Dashboards</h3>
     <div class="grid g2">
       <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Top companies hiring</h4><div id="mkTopCompanies"></div></div>
@@ -392,6 +409,8 @@
       <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Hiring locations</h4><div id="mkTopLocs"></div></div>
       <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Jobs by portal</h4><div id="mkTopPortals"></div></div>
     </div>
+    <h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy);margin-top:18px">Hiring trend (jobs logged per day, last 14 days)</h4>
+    <div id="mkTrend"></div>
   </div>
 </section>
 
@@ -891,6 +910,7 @@ const KEY='svs_console_v1';
 const seed={
   openings:[],
   market:[],
+  alerts:[],
   candidates:[],
   clients:[],
   matches:[],
@@ -905,7 +925,7 @@ const seed={
   seq:1
 }
 let db=load();
-function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.market)d.market=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
+function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.market)d.market=[];if(!d.alerts)d.alerts=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
 function nid(){return db.seq++;}
 
@@ -1965,6 +1985,8 @@ function renderMarket(){
     </div>`;
   }).join('');
   renderMarketDash();
+  renderUpcoming();
+  renderAlerts();
 }
 function tally(arr,keyfn){
   const m={};
@@ -1985,6 +2007,78 @@ function renderMarketDash(){
   document.getElementById('mkTopSkills').innerHTML=barList(tally(src,j=>j.skills));
   document.getElementById('mkTopLocs').innerHTML=barList(tally(src,j=>j.loc));
   document.getElementById('mkTopPortals').innerHTML=barList(tally(src,j=>j.portal));
+  renderTrend();
+}
+function dayKey(ms){const d=new Date(ms);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function renderTrend(){
+  const el=document.getElementById('mkTrend');if(!el)return;
+  const days=[];const base=nowMs();
+  for(let i=13;i>=0;i--){const ms=base-i*86400000;days.push(dayKey(ms));}
+  const counts=days.map(d=>db.market.filter(j=>dayKey(j.loggedAt||j.postedAtMs||base)===d).length);
+  const max=Math.max(1,...counts);
+  el.innerHTML=`<div style="display:flex;align-items:flex-end;gap:3px;height:90px;margin-top:6px">`+
+    days.map((d,i)=>{const h=Math.round(counts[i]/max*80);const lbl=d.slice(5);
+      return `<div style="flex:1;text-align:center" title="${d}: ${counts[i]}">
+        <div style="height:${h}px;min-height:2px;background:var(--orange);border-radius:3px 3px 0 0"></div>
+        <div style="font-size:8px;color:var(--muted);margin-top:2px;transform:rotate(-45deg);white-space:nowrap">${lbl}</div>
+      </div>`;}).join('')+`</div>`;
+}
+function renderUpcoming(){
+  const el=document.getElementById('mkUpcoming');if(!el)return;
+  const items=db.market.filter(j=>j.idate||j.prio==='Urgent / immediate');
+  items.sort((a,b)=>{
+    const ad=a.idate||'9999-12-31',bd=b.idate||'9999-12-31';
+    if(ad!==bd)return ad<bd?-1:1;
+    return (a.prio==='Urgent / immediate'?0:1)-(b.prio==='Urgent / immediate'?0:1);
+  });
+  if(!items.length){el.innerHTML='<p class="small">Nothing scheduled or urgent yet. Mark a job urgent or add an interview date and it shows here.</p>';return;}
+  el.innerHTML=items.map(j=>{
+    const fc=fastestContact(j);
+    return `<div style="padding:9px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div><b>${esc(j.title||'')}</b> — ${esc(j.company||'')} ${j.prio==='Urgent / immediate'?'<span class="pill" style="background:#ffe0e0;color:#c0392b">Urgent</span>':''}
+        <div class="small">${[j.itype,j.idate,j.itime,j.ivenue||j.loc].filter(Boolean).map(esc).join(' · ')}</div></div>
+      <div style="flex:0">${fc?`<a class="btn sm orange" href="${esc(fc.url)}" target="_blank" rel="noopener">${fc.label}</a>`:''}</div>
+    </div>`;
+  }).join('');
+}
+function alertCount(a){
+  const sk=(a.skill||'').toLowerCase(),loc=(a.loc||'').toLowerCase();
+  return db.market.filter(j=>{
+    if(sk&&!((j.skills||'')+' '+(j.title||'')).toLowerCase().includes(sk))return false;
+    if(loc&&!(j.loc||'').toLowerCase().includes(loc))return false;
+    return true;
+  }).length;
+}
+function addAlert(){
+  const skill=document.getElementById('al_skill').value.trim();
+  const loc=document.getElementById('al_loc').value.trim();
+  if(!skill&&!loc){toast('Add a skill or location');return;}
+  db.alerts.push({id:nid(),skill,loc});save();
+  document.getElementById('al_skill').value='';document.getElementById('al_loc').value='';
+  renderAlerts();toast('Alert saved');
+}
+function deleteAlert(id){db.alerts=db.alerts.filter(a=>a.id!==id);save();renderAlerts();}
+function applyAlert(a){
+  document.getElementById('mf_skill').value=a.skill||'';
+  document.getElementById('mf_loc').value=a.loc||'';
+  document.getElementById('mf_window').value='9999';
+  document.getElementById('mf_portal').value='';
+  document.getElementById('mf_special').value='';
+  renderMarket();
+  document.getElementById('marketList').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function renderAlerts(){
+  const el=document.getElementById('mkAlerts');if(!el)return;
+  if(!db.alerts.length){el.innerHTML='<p class="small">No saved alerts yet.</p>';return;}
+  el.innerHTML=db.alerts.map(a=>{
+    const n=alertCount(a);
+    return `<div style="display:inline-flex;align-items:center;gap:8px;background:var(--soft);border:1px solid var(--line);border-radius:20px;padding:6px 12px;margin:0 6px 6px 0">
+      <span style="font-weight:600">${esc([a.skill,a.loc].filter(Boolean).join(' · ')||'Any')}</span>
+      <span class="pill" style="background:${n?'#ffe6cc':'#e9edf6'};color:${n?'#c2620a':'#6b7689'};font-weight:700">${n} match${n===1?'':'es'}</span>
+      <a href="#" onclick="applyAlert(db.alerts.find(x=>x.id===${a.id}));return false" style="font-size:12px">view</a>
+      <a href="#" onclick="deleteAlert(${a.id});return false" style="font-size:12px;color:var(--red)">×</a>
+    </div>`;
+  }).join('');
 }
 
 function renderAll(){renderHome();renderOpenings();renderMarket();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();renderTeam();calcFee();renderJobCandBtns();renderJobSources();}

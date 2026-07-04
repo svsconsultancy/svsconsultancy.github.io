@@ -1,5 +1,5 @@
 // SVS Console offline cache. Bump CACHE on every release so phones pull fresh files.
-const CACHE='svs-v20';
+const CACHE='svs-v21';
 const ASSETS=['./','./index.html','./app.html','./links.html','./404.html','./manifest.json','./icon-192.png','./icon-512.png','./icon.svg','./favicon.ico'];
 self.addEventListener('install',e=>{
   self.skipWaiting();
