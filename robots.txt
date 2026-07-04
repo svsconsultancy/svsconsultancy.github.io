@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Allow: /links.html
+Disallow: /app.html
+
+Sitemap: https://svsconsultancy.github.io/sitemap.xml
