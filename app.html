@@ -131,6 +131,7 @@
   <button class="active" data-v="home">Dashboard</button>
   <button data-v="guide">Guide</button>
   <button data-v="openings">Job Openings</button>
+  <button data-v="market">Market Intel</button>
   <button data-v="board">Pipeline</button>
   <button data-v="candidates">Candidates</button>
   <button data-v="scorecard">Interview Score</button>
@@ -319,6 +320,78 @@
     <h3>Candidates on this job</h3>
     <table id="od_matches"><thead><tr><th>Candidate</th><th>Stage</th><th>Interview</th><th>Move</th><th></th></tr></thead><tbody></tbody></table>
     <div class="empty" id="od_matchEmpty" style="display:none">No candidates matched yet. Add one above.</div>
+  </div>
+</section>
+
+<!-- MARKET INTEL -->
+<section class="view" id="market">
+  <h2>Job Market Intelligence</h2>
+  <p class="sub">Track newly posted jobs across portals, spot who's hiring and which skills are trending, and reach recruiters before the competition. Add jobs you find (or import a list), tag when they were posted, and the dashboard does the rest. Everything stays in your browser.</p>
+
+  <div class="stats" id="mkStats"></div>
+
+  <div class="card">
+    <h3>Log a job you found</h3>
+    <div class="grid g3">
+      <div><label>Company</label><input id="m_company" placeholder="e.g. Infosys"></div>
+      <div><label>Job title</label><input id="m_title" placeholder="e.g. Java Developer"></div>
+      <div><label>Location</label><input id="m_loc" placeholder="e.g. Hyderabad"></div>
+      <div><label>Experience</label><input id="m_exp" placeholder="e.g. 2-4 yrs"></div>
+      <div><label>Skills</label><input id="m_skills" placeholder="e.g. Java, Spring, SQL"></div>
+      <div><label>Salary (if shown)</label><input id="m_salary" placeholder="e.g. 8-12 LPA"></div>
+      <div><label>Portal</label><select id="m_portal"><option>Naukri</option><option>LinkedIn</option><option>Indeed</option><option>Foundit</option><option>Instahyre</option><option>Company site</option><option>Referral</option><option>Other</option></select></div>
+      <div><label>Posted</label><select id="m_posted"><option value="1">Last 1 hour</option><option value="3">Last 3 hours</option><option value="6">Last 6 hours</option><option value="12">Last 12 hours</option><option value="24" selected>Last 24 hours</option><option value="72">Last 3 days</option><option value="168">Last week</option><option value="9999">Older</option></select></div>
+      <div><label>Interview type</label><select id="m_itype"><option value="">Not known</option><option>Walk-in</option><option>Face-to-face</option><option>Virtual</option><option>Telephonic</option></select></div>
+      <div><label>Job link</label><input id="m_link" placeholder="https://..."></div>
+      <div><label>Recruiter / HR name</label><input id="m_hr" placeholder="if shown on the post"></div>
+      <div><label>Recruiter LinkedIn / contact</label><input id="m_hrcontact" placeholder="profile link, email or phone if public"></div>
+      <div><label>Interview date</label><input type="date" id="m_idate"></div>
+      <div><label>Interview time</label><input id="m_itime" placeholder="e.g. 10 AM - 1 PM"></div>
+      <div><label>Venue / meeting link</label><input id="m_ivenue" placeholder="office address or virtual link"></div>
+      <div><label>Priority</label><select id="m_prio"><option>Normal</option><option>Urgent / immediate</option><option>Watch</option></select></div>
+    </div>
+    <label>Notes</label><textarea id="m_notes" placeholder="anything useful — JD points, how to apply, who referred..."></textarea>
+    <div class="topbtns" style="margin-top:12px">
+      <button class="btn orange" onclick="saveMarketJob()">Save job</button>
+      <button class="btn ghost" onclick="clearMarketForm()">Clear</button>
+      <span class="small" id="m_editing" style="align-self:center"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Bulk import (CSV)</h3>
+    <p class="small" style="margin-top:0">Paste rows from a spreadsheet. One job per line. Columns: <b>company, title, location, experience, skills, salary, portal, hoursAgo, link</b>. First line can be a header (it's skipped if it starts with "company").</p>
+    <textarea id="m_csv" placeholder="Infosys, Java Developer, Hyderabad, 2-4 yrs, Java Spring, 8-12 LPA, Naukri, 3, https://..."></textarea>
+    <div class="topbtns" style="margin-top:10px">
+      <button class="btn" onclick="importMarketCsv()">Import rows</button>
+      <span class="small" id="m_importmsg" style="align-self:center"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Filter</h3>
+    <div class="inline">
+      <div><label>Posted within</label><select id="mf_window" onchange="renderMarket()"><option value="9999">Any time</option><option value="1">Last 1 hour</option><option value="3">Last 3 hours</option><option value="6">Last 6 hours</option><option value="12">Last 12 hours</option><option value="24">Last 24 hours</option></select></div>
+      <div><label>Location contains</label><input id="mf_loc" placeholder="e.g. Hyderabad" oninput="renderMarket()"></div>
+      <div><label>Skill / title contains</label><input id="mf_skill" placeholder="e.g. Java" oninput="renderMarket()"></div>
+      <div><label>Portal</label><select id="mf_portal" onchange="renderMarket()"><option value="">All</option><option>Naukri</option><option>LinkedIn</option><option>Indeed</option><option>Foundit</option><option>Instahyre</option><option>Company site</option><option>Referral</option><option>Other</option></select></div>
+      <div><label>Only</label><select id="mf_special" onchange="renderMarket()"><option value="">All jobs</option><option value="urgent">Urgent / immediate</option><option value="interview">Has interview scheduled</option><option value="walkin">Walk-in / F2F / virtual</option></select></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="marketList"></div>
+    <div class="empty" id="marketEmpty" style="display:none">No jobs logged yet. Add one above, or paste a batch into Bulk import.</div>
+  </div>
+
+  <div class="card">
+    <h3>Dashboards</h3>
+    <div class="grid g2">
+      <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Top companies hiring</h4><div id="mkTopCompanies"></div></div>
+      <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Trending skills</h4><div id="mkTopSkills"></div></div>
+      <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Hiring locations</h4><div id="mkTopLocs"></div></div>
+      <div><h4 style="text-transform:uppercase;font-size:12px;letter-spacing:.5px;color:var(--navy)">Jobs by portal</h4><div id="mkTopPortals"></div></div>
+    </div>
   </div>
 </section>
 
@@ -817,6 +890,7 @@
 const KEY='svs_console_v1';
 const seed={
   openings:[],
+  market:[],
   candidates:[],
   clients:[],
   matches:[],
@@ -831,7 +905,7 @@ const seed={
   seq:1
 }
 let db=load();
-function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
+function load(){try{const r=localStorage.getItem(KEY);const d=r?JSON.parse(r):JSON.parse(JSON.stringify(seed));if(!d.scores)d.scores=[];if(!d.plan)d.plan={};if(!d.openings)d.openings=[];if(!d.market)d.market=[];if(!d.matches)d.matches=[];if(!d.team)d.team=JSON.parse(JSON.stringify(seed.team));if(!d.seq)d.seq=1;return d;}catch(e){return JSON.parse(JSON.stringify(seed));}}
 function save(){localStorage.setItem(KEY,JSON.stringify(db));}
 function nid(){return db.seq++;}
 
@@ -1717,7 +1791,202 @@ function today(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth
 function closeWelcome(){document.getElementById('welcome').style.display='none';localStorage.setItem('svs_seen_welcome','1');}
 function maybeWelcome(){if(!localStorage.getItem('svs_seen_welcome'))document.getElementById('welcome').style.display='flex';}
 
-function renderAll(){renderHome();renderOpenings();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();renderTeam();calcFee();renderJobCandBtns();renderJobSources();}
+/* ---------- market intelligence ---------- */
+let editMarket=null;
+function nowMs(){return new Date().getTime();}
+function marketAgeHours(j){ // hours since posted, from loggedAt minus original offset
+  const base=j.postedAtMs||j.loggedAt||nowMs();
+  return Math.max(0,(nowMs()-base)/3600000);
+}
+function saveMarketJob(){
+  const company=document.getElementById('m_company').value.trim();
+  const title=document.getElementById('m_title').value.trim();
+  if(!company&&!title){toast('Add at least a company or a title');return;}
+  const hoursAgo=parseFloat(document.getElementById('m_posted').value)||24;
+  const rec={
+    id:editMarket||nid(),
+    company,title,
+    loc:document.getElementById('m_loc').value.trim(),
+    exp:document.getElementById('m_exp').value.trim(),
+    skills:document.getElementById('m_skills').value.trim(),
+    salary:document.getElementById('m_salary').value.trim(),
+    portal:document.getElementById('m_portal').value,
+    link:document.getElementById('m_link').value.trim(),
+    hr:document.getElementById('m_hr').value.trim(),
+    hrcontact:document.getElementById('m_hrcontact').value.trim(),
+    itype:document.getElementById('m_itype').value,
+    idate:document.getElementById('m_idate').value,
+    itime:document.getElementById('m_itime').value.trim(),
+    ivenue:document.getElementById('m_ivenue').value.trim(),
+    prio:document.getElementById('m_prio').value,
+    notes:document.getElementById('m_notes').value.trim()
+  };
+  if(editMarket){
+    const i=db.market.findIndex(x=>x.id===editMarket);
+    if(i>-1){rec.loggedAt=db.market[i].loggedAt;rec.postedAtMs=db.market[i].postedAtMs;db.market[i]=rec;}
+    editMarket=null;
+  }else{
+    rec.loggedAt=nowMs();
+    rec.postedAtMs=nowMs()-Math.round(hoursAgo*3600000);
+    db.market.unshift(rec);
+  }
+  save();clearMarketForm();renderMarket();toast('Job saved');
+}
+function editMarketJob(id){
+  const j=db.market.find(x=>x.id===id);if(!j)return;
+  editMarket=id;
+  document.getElementById('m_company').value=j.company||'';
+  document.getElementById('m_title').value=j.title||'';
+  document.getElementById('m_loc').value=j.loc||'';
+  document.getElementById('m_exp').value=j.exp||'';
+  document.getElementById('m_skills').value=j.skills||'';
+  document.getElementById('m_salary').value=j.salary||'';
+  document.getElementById('m_portal').value=j.portal||'Other';
+  document.getElementById('m_link').value=j.link||'';
+  document.getElementById('m_hr').value=j.hr||'';
+  document.getElementById('m_hrcontact').value=j.hrcontact||'';
+  document.getElementById('m_itype').value=j.itype||'';
+  document.getElementById('m_idate').value=j.idate||'';
+  document.getElementById('m_itime').value=j.itime||'';
+  document.getElementById('m_ivenue').value=j.ivenue||'';
+  document.getElementById('m_prio').value=j.prio||'Normal';
+  document.getElementById('m_notes').value=j.notes||'';
+  document.getElementById('m_editing').textContent='Editing — save to update';
+  window.scrollTo(0,0);
+}
+function clearMarketForm(){
+  ['m_company','m_title','m_loc','m_exp','m_skills','m_salary','m_link','m_hr','m_hrcontact','m_itime','m_ivenue','m_notes','m_idate'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('m_portal').value='Naukri';
+  document.getElementById('m_posted').value='24';
+  document.getElementById('m_itype').value='';
+  document.getElementById('m_prio').value='Normal';
+  editMarket=null;document.getElementById('m_editing').textContent='';
+}
+function deleteMarketJob(id){
+  if(!confirm('Delete this job?'))return;
+  db.market=db.market.filter(x=>x.id!==id);save();renderMarket();toast('Deleted');
+}
+function importMarketCsv(){
+  const raw=document.getElementById('m_csv').value.trim();
+  if(!raw){toast('Paste some rows first');return;}
+  const lines=raw.split(/\r?\n/).filter(l=>l.trim());
+  let added=0;
+  lines.forEach((line,idx)=>{
+    const c=line.split(',').map(x=>x.trim());
+    if(idx===0&&/^company/i.test(c[0]))return; // skip header
+    if(!c[0]&&!c[1])return;
+    const hoursAgo=parseFloat(c[7])||24;
+    db.market.unshift({
+      id:nid(),company:c[0]||'',title:c[1]||'',loc:c[2]||'',exp:c[3]||'',skills:c[4]||'',
+      salary:c[5]||'',portal:c[6]||'Other',link:c[8]||'',hr:'',hrcontact:'',itype:'',idate:'',itime:'',ivenue:'',prio:'Normal',notes:'',
+      loggedAt:nowMs(),postedAtMs:nowMs()-Math.round(hoursAgo*3600000)
+    });
+    added++;
+  });
+  save();document.getElementById('m_csv').value='';
+  document.getElementById('m_importmsg').textContent=added+' job'+(added===1?'':'s')+' imported';
+  renderMarket();toast(added+' imported');
+}
+function marketAgeLabel(h){
+  if(h<1)return Math.round(h*60)+'m ago';
+  if(h<24)return Math.round(h)+'h ago';
+  const d=Math.round(h/24);return d+'d ago';
+}
+function marketFiltered(){
+  const win=parseFloat(document.getElementById('mf_window').value)||9999;
+  const loc=(document.getElementById('mf_loc').value||'').toLowerCase();
+  const sk=(document.getElementById('mf_skill').value||'').toLowerCase();
+  const portal=document.getElementById('mf_portal').value||'';
+  const special=document.getElementById('mf_special').value||'';
+  return db.market.filter(j=>{
+    if(marketAgeHours(j)>win)return false;
+    if(loc&&!(j.loc||'').toLowerCase().includes(loc))return false;
+    if(sk&&!((j.skills||'')+' '+(j.title||'')).toLowerCase().includes(sk))return false;
+    if(portal&&j.portal!==portal)return false;
+    if(special==='urgent'&&j.prio!=='Urgent / immediate')return false;
+    if(special==='interview'&&!j.idate)return false;
+    if(special==='walkin'&&!['Walk-in','Face-to-face','Virtual'].includes(j.itype))return false;
+    return true;
+  }).sort((a,b)=>marketAgeHours(a)-marketAgeHours(b));
+}
+function fastestContact(j){
+  if(j.hrcontact){
+    const v=j.hrcontact;
+    if(/linkedin/i.test(v))return {label:'LinkedIn',url:v.startsWith('http')?v:'https://'+v};
+    if(/@/.test(v))return {label:'Email',url:'mailto:'+v};
+    if(/^\+?\d[\d\s-]{6,}$/.test(v))return {label:'Call',url:'tel:'+v.replace(/[^\d+]/g,'')};
+    return {label:'Contact',url:v.startsWith('http')?v:'#'};
+  }
+  if(j.link)return {label:'Open post',url:j.link};
+  return null;
+}
+function renderMarket(){
+  if(!document.getElementById('marketList'))return;
+  const list=marketFiltered();
+  document.getElementById('marketEmpty').style.display=db.market.length?'none':'block';
+  // stats: within each window
+  const wins=[1,3,6,12,24];
+  const counts=wins.map(w=>db.market.filter(j=>marketAgeHours(j)<=w).length);
+  const urgent=db.market.filter(j=>j.prio==='Urgent / immediate').length;
+  document.getElementById('mkStats').innerHTML=
+    wins.map((w,i)=>`<div class="stat"><div class="n">${counts[i]}</div><div class="l">last ${w}h</div></div>`).join('')+
+    `<div class="stat"><div class="n">${db.market.length}</div><div class="l">total tracked</div></div>`+
+    `<div class="stat"><div class="n">${urgent}</div><div class="l">urgent</div></div>`;
+  // list
+  document.getElementById('marketList').innerHTML=list.map(j=>{
+    const age=marketAgeHours(j);
+    const fresh=age<=6?'#177a42':age<=24?'#b5740b':'#6b7689';
+    const fc=fastestContact(j);
+    const iv=j.idate||j.itime||j.ivenue||j.itype;
+    return `<div class="card" style="margin:0 0 10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <b>${esc(j.title||'(no title)')}</b> ${j.prio==='Urgent / immediate'?'<span class="pill" style="background:#ffe0e0;color:#c0392b">Urgent</span>':''}
+          <br><span style="color:var(--navy2);font-weight:600">${esc(j.company||'')}</span>
+          <div class="small" style="margin-top:4px">
+            ${j.loc?'📍 '+esc(j.loc)+' ':''}${j.exp?'· '+esc(j.exp)+' ':''}${j.salary?'· 💰 '+esc(j.salary)+' ':''}
+          </div>
+          ${j.skills?'<div class="small" style="margin-top:3px">🧩 '+esc(j.skills)+'</div>':''}
+          ${j.hr||j.hrcontact?'<div class="small" style="margin-top:3px">👤 '+esc(j.hr||'Recruiter')+(j.hrcontact?' — '+esc(j.hrcontact):'')+'</div>':''}
+          ${iv?'<div class="small" style="margin-top:3px;color:#177a42">🗓 '+[j.itype,j.idate,j.itime,j.ivenue].filter(Boolean).map(esc).join(' · ')+'</div>':''}
+        </div>
+        <div style="text-align:right;flex:0;min-width:110px">
+          <div class="pill" style="background:#eef;color:${fresh};font-weight:700">${marketAgeLabel(age)}</div>
+          <div class="small" style="margin-top:4px">${esc(j.portal||'')}</div>
+        </div>
+      </div>
+      <div class="topbtns" style="margin-top:10px">
+        ${fc?`<a class="btn sm orange" href="${esc(fc.url)}" target="_blank" rel="noopener">${fc.label}</a>`:''}
+        ${j.link?`<a class="btn sm ghost" href="${esc(j.link)}" target="_blank" rel="noopener">Job link</a>`:''}
+        <button class="btn sm ghost" onclick="editMarketJob(${j.id})">Edit</button>
+        <button class="btn sm danger" onclick="deleteMarketJob(${j.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  renderMarketDash();
+}
+function tally(arr,keyfn){
+  const m={};
+  arr.forEach(j=>{const raw=keyfn(j);if(!raw)return;String(raw).split(',').map(s=>s.trim()).filter(Boolean).forEach(k=>{m[k]=(m[k]||0)+1;});});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,8);
+}
+function barList(pairs){
+  if(!pairs.length)return '<p class="small">No data yet.</p>';
+  const max=pairs[0][1]||1;
+  return pairs.map(([k,v])=>`<div style="margin:5px 0">
+    <div style="display:flex;justify-content:space-between;font-size:13px"><span>${esc(k)}</span><b>${v}</b></div>
+    <div style="height:7px;background:var(--soft);border-radius:5px;overflow:hidden"><div style="height:100%;width:${Math.round(v/max*100)}%;background:var(--orange)"></div></div>
+  </div>`).join('');
+}
+function renderMarketDash(){
+  const src=db.market;
+  document.getElementById('mkTopCompanies').innerHTML=barList(tally(src,j=>j.company));
+  document.getElementById('mkTopSkills').innerHTML=barList(tally(src,j=>j.skills));
+  document.getElementById('mkTopLocs').innerHTML=barList(tally(src,j=>j.loc));
+  document.getElementById('mkTopPortals').innerHTML=barList(tally(src,j=>j.portal));
+}
+
+function renderAll(){renderHome();renderOpenings();renderMarket();renderBoard();renderCandidates();renderClients();renderSubmissions();renderSubsOptions();renderScCandOptions();renderScores();renderTemplates();renderPlan();renderTeam();calcFee();renderJobCandBtns();renderJobSources();}
 document.getElementById('s_date').value=today();
 document.getElementById('sc_date').value=today();
 if(db.avgFee)document.getElementById('f_avg').value=db.avgFee;
