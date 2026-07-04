@@ -1898,8 +1898,9 @@ function marketFiltered(){
   const sk=(document.getElementById('mf_skill').value||'').toLowerCase();
   const portal=document.getElementById('mf_portal').value||'';
   const special=document.getElementById('mf_special').value||'';
+  const GRACE=0.05; // ~3 min tolerance so "posted 1h ago" still counts as within 1h
   return db.market.filter(j=>{
-    if(marketAgeHours(j)>win)return false;
+    if(marketAgeHours(j)>win+GRACE)return false;
     if(loc&&!(j.loc||'').toLowerCase().includes(loc))return false;
     if(sk&&!((j.skills||'')+' '+(j.title||'')).toLowerCase().includes(sk))return false;
     if(portal&&j.portal!==portal)return false;
@@ -1926,7 +1927,7 @@ function renderMarket(){
   document.getElementById('marketEmpty').style.display=db.market.length?'none':'block';
   // stats: within each window
   const wins=[1,3,6,12,24];
-  const counts=wins.map(w=>db.market.filter(j=>marketAgeHours(j)<=w).length);
+  const counts=wins.map(w=>db.market.filter(j=>marketAgeHours(j)<=w+0.05).length);
   const urgent=db.market.filter(j=>j.prio==='Urgent / immediate').length;
   document.getElementById('mkStats').innerHTML=
     wins.map((w,i)=>`<div class="stat"><div class="n">${counts[i]}</div><div class="l">last ${w}h</div></div>`).join('')+
